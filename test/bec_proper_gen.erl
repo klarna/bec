@@ -400,7 +400,7 @@ config_value('wz-branch-reviewers') -> wz_branch_reviewers();
 config_value('webhooks')            -> webhooks().
 
 project() ->
-  list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY")).
+  list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")).
 
 repo() ->
-  list_to_binary(os:getenv("BB_STAGING_REPO_SLUG")).
+  list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")).

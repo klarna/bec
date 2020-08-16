@@ -23,8 +23,8 @@
 %% Initial State
 %%==============================================================================
 initial_state() ->
-  ProjectKey  = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY")),
-  RepoSlug    = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG")),
+  ProjectKey  = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
+  RepoSlug    = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
   {ok, Hooks} = bitbucket:get_hooks(ProjectKey, RepoSlug),
   #{ project_key      => ProjectKey
    , repo_slug        => RepoSlug
@@ -416,9 +416,9 @@ setup() ->
   %% See: https://github.com/erlang-lager/lager/issues/452
   ok = application:set_env(lager, error_logger_redirect, false),
   application:load(bec),
-  Url           = os:getenv("BB_STAGING_URL"),
-  Username      = os:getenv("BB_STAGING_USERNAME"),
-  Password      = os:getenv("BB_STAGING_PASSWORD"),
+  Url           = os:getenv("BB_STAGING_URL", ""),
+  Username      = os:getenv("BB_STAGING_USERNAME", ""),
+  Password      = os:getenv("BB_STAGING_PASSWORD", ""),
   application:set_env(bec, bitbucket_url,      Url),
   application:set_env(bec, bitbucket_username, Username),
   application:set_env(bec, bitbucket_password, Password),

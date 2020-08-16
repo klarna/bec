@@ -39,9 +39,9 @@ all() ->
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
   {ok, Started} = application:ensure_all_started(bec),
-  Url           = os:getenv("BB_STAGING_URL"),
-  Username      = os:getenv("BB_STAGING_USERNAME"),
-  Password      = os:getenv("BB_STAGING_PASSWORD"),
+  Url           = os:getenv("BB_STAGING_URL", ""),
+  Username      = os:getenv("BB_STAGING_USERNAME", ""),
+  Password      = os:getenv("BB_STAGING_PASSWORD", ""),
   [ {started,  Started}
   , {url,      Url}
   , {username, Username}
