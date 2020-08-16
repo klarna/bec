@@ -4,4 +4,4 @@
 * Produce Docker image
 * Produce and test escript in CI
 * Modernize running of elvis
-* Replace integration tests with mocked responses
+* Replace integration tests with mocked responses and re-enable proper tests

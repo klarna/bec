@@ -43,8 +43,6 @@ jobs:
       with:
         name: ct-logs
         path: _build/test/logs
-    - name: Run PropEr Tests
-      run: rebar3 proper --cover
     - name: Run Checks
       run: rebar3 do dialyzer, xref
     - name: Create Cover Reports
