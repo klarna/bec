@@ -34,7 +34,7 @@ prop_yml() ->
 %%==============================================================================
 setup() ->
   application:load(bec),
-  Url           = os:getenv("BB_STAGING_URL", ""),
+  Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
   Username      = os:getenv("BB_STAGING_USERNAME", ""),
   Password      = os:getenv("BB_STAGING_PASSWORD", ""),
   application:set_env(bec, bitbucket_url,      Url),

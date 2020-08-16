@@ -416,7 +416,7 @@ setup() ->
   %% See: https://github.com/erlang-lager/lager/issues/452
   ok = application:set_env(lager, error_logger_redirect, false),
   application:load(bec),
-  Url           = os:getenv("BB_STAGING_URL", ""),
+  Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
   Username      = os:getenv("BB_STAGING_USERNAME", ""),
   Password      = os:getenv("BB_STAGING_PASSWORD", ""),
   application:set_env(bec, bitbucket_url,      Url),
