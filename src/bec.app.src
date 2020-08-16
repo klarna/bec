@@ -1,0 +1,21 @@
+{application, bec, [
+  {description, "BitBucket Erlang Client"},
+  {vsn, git},
+  {modules, []},
+  {registered, []},
+  {applications, [ kernel
+                 , stdlib
+                 , ssl
+                 , inets
+                 , goldrush
+                 , lager
+                 , yamerl
+                 , getopt
+                 , mustache
+                 , jsx
+                 ]},
+  {env, [ {bitbucket_username, ""}
+        , {bitbucket_password, ""}
+        , {bitbucket_url, "http://localhost:8000" }
+        ]}
+]}.

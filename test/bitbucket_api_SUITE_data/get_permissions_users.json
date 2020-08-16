@@ -1,0 +1,71 @@
+{
+    "size": 3,
+    "limit": 25,
+    "isLastPage": true,
+    "values": [
+        {
+            "user": {
+                "name": "user.a",
+                "emailAddress": "user.a@company.com",
+                "id": 102,
+                "displayName": "User A",
+                "active": true,
+                "slug": "user.a",
+                "type": "NORMAL"
+            },
+            "links": [
+                {
+                    "self": [
+                        {
+                            "href": "https://localhost:8000/users/user.a"
+                        }
+                    ]
+                }
+            ],
+            "permission": "REPO_WRITE"
+        },
+        {
+            "user": {
+                "name": "user.b",
+                "emailAddress": "user.b@company.com",
+                "id": 103,
+                "displayName": "User B",
+                "active": true,
+                "slug": "user.b",
+                "type": "NORMAL"
+            },
+            "links": [
+                {
+                    "self": [
+                        {
+                            "href": "https://localhost:8000/users/user.b"
+                        }
+                    ]
+                }
+            ],
+            "permission": "REPO_WRITE"
+        },
+        {
+            "user": {
+                "name": "user.c",
+                "emailAddress": "user.c@company.com",
+                "id": 109,
+                "displayName": "User C",
+                "active": true,
+                "slug": "user.c",
+                "type": "NORMAL"
+            },
+            "links": [
+                {
+                    "self": [
+                        {
+                            "href": "https://localhost:8000/users/user.c"
+                        }
+                    ]
+                }
+            ],
+            "permission": "REPO_ADMIN"
+        }
+    ],
+    "start": 0
+}

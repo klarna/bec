@@ -1,0 +1,60 @@
+name: Build
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        otp-version: [21.3, 22.2, 23.0]
+    runs-on: ${{ matrix.platform }}
+    container:
+      image: erlang:${{ matrix.otp-version }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Cache Hex packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/rebar3/hex/hexpm/packages
+        key: ${{ runner.os }}-hex-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-hex-
+    - name: Cache Dialyzer PLTs
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/rebar3/rebar3_*.plt
+        key: ${{ runner.os }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.config')) }}
+        restore-keys: |
+          ${{ runner.os }}-dialyzer-
+    - name: Compile
+      run: rebar3 as test compile
+    - name: Run EUnit Tests
+      run: rebar3 eunit
+    - name: Run CT Tests
+      run: rebar3 ct
+    - name: Store CT Logs
+      uses: actions/upload-artifact@v1
+      with:
+        name: ct-logs
+        path: _build/test/logs
+    - name: Run PropEr Tests
+      run: rebar3 proper --cover
+    - name: Run Checks
+      run: rebar3 do dialyzer, xref
+    - name: Create Cover Reports
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: rebar3 cover
+    - name: Produce Documentation
+      run: rebar3 edoc
+    - name: Publish Documentation
+      uses: actions/upload-artifact@v1
+      with:
+        name: edoc
+        path: doc

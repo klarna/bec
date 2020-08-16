@@ -1,0 +1,8 @@
+{
+    "id"              : "refs/heads/integration",
+    "displayId"       : "integration",
+    "type"            : "BRANCH",
+    "latestCommit"    : "2d5d19670d8d9b5190935ca5a1f7edfcbd3b0495",
+    "latestChangeset" : "2d5d19670d8d9b5190935ca5a1f7edfcbd3b0495",
+    "isDefault"       : true
+}

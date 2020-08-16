@@ -1,0 +1,16 @@
+*.beam
+*.d
+ct.coverdata
+ct.cover.spec
+.erlang.mk/
+_rel/
+deps/
+doc/
+ebin/
+log/
+logs/
+bec
+relx
+_build
+rebar.lock
+.idea/

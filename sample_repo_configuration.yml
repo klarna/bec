@@ -1,0 +1,149 @@
+project: MYTEAM
+repo: my_repo
+
+# Repository Details
+default-branch: develop
+
+# Repository Permissions
+public: false
+users:
+  read:
+    - sys.jenkins
+groups:
+  admin:
+    - team.backend
+  write:
+    - team.frontend
+    - team.qa
+
+# Branch Restrictions
+branch-restrictions:
+  - branch-id: develop
+    type: fast-forward-only
+    matcher-type: BRANCH
+  - branch-id: develop
+    type: no-deletes
+    matcher-type: BRANCH
+  - branch-id: develop
+    type: pull-request-only
+    matcher-type: BRANCH
+    exceptions:
+      users: []
+      groups:
+        - team.frontend
+        - team.qa
+  - branch-id: develop
+    type: fast-forward-only
+    matcher-type: BRANCH
+  - branch-id: develop
+    type: no-deletes
+    matcher-type: BRANCH
+  - branch-id: develop
+    type: pull-request-only
+    matcher-type: BRANCH
+    exceptions:
+      users: []
+      groups:
+        - team.backend
+
+access-keys:
+  - permission: READ_ONLY
+    text: >
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTtqHfMHI1Hm5tFOg8fCGQkKJPngmBd6SOjizy792jv4zyNHPVC428zs84uw8NHpXOhALixI77STeWu0Qejlj4agH4fyaC7w6bo346NHSurtH6MdsYFZhSjA9UqVeUnaEfF5do+aY2R9i0QsBAuG/Ha/v5Rpq908+qJi+FItNrJCSj/ov2sWzq1cmsh8Onwujq/EI8Esh55eDE5g6RAou+iwFxH5sU56wvjjdnubb+ieoTpGBNse/qtjQXkTfLeljOPjxNILf7HRFfrqWb3rheYqVS2U/2Tm784aIF/riUZrNzTWW7wCaiFQKEuwKk38fwa5z8v+KKio70oX5FQRvt jenkins@localhost
+
+hooks:
+  - key: "com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook"
+    enabled: true
+    settings:
+      branchOptions:
+      branchOptionsBranches:
+      cloneType: custom
+      gitRepoUrl: ssh://git@my.bitbucket.server/MYTEAM/my_repo.git
+      ignoreCerts: false
+      ignoreCommitters:
+      jenkinsBase: https://jenkins.hipster.company.io/
+      omitBranchName: false
+      omitHashCode: false
+      omitTriggerBuildButton: false
+  - key: "de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook"
+    enabled: true
+    settings:
+      locationCount: '2' # The plugin requires an explicit count of how many hooks are set
+      version: '3' # Plugin's API version
+      branchFilter: ^((proj)|(PROJ))\-.*
+      httpMethod: POST
+      tagFilter: ^$
+      url: https://jenkins.hipster.company.io/job/test/buildWithParameters?token=secret&GIT_BRANCH=${refChange.name} # See all available variables at https://bitbucket.org/a-v-r/bitbucket-http-request-hook/src/master/
+      skipSsl: true
+      branchFilter2: ^develop$
+      httpMethod2: POST
+      tagFilter2: ^$
+      url2: https://jenkins.hipster.company.io/job/integrate/build
+      skipSsl2: false
+  # Requires BitBucket 6.x
+  - key: com.atlassian.bitbucket.server.bitbucket-bundled-hooks:needs-work-merge-check
+    enabled: true
+    settings: {}
+
+# PR Restrictions
+pr-restrictions:
+  required-all-approvers : true
+  required-all-tasks-complete : true
+  required-approvers : 2
+  required-successful-builds : 1
+  merge-config:
+    default-strategy: no-ff
+    enabled-strategies:
+      - ff
+      - ff-only
+      - no-ff
+      - squash
+      - squash-ff-only
+
+# Workzone PR Restrictions
+wz-pr-restrictions:
+  - branch-id: develop
+    approval-quota: 0 # The percentage of individuals reviewing a PR who must approve it before it can be merged
+    group-quota: 1   # Minimum number of approvals required per group
+
+# Workzone Branch Reviewers
+wz-branch-reviewers:
+  - branch-id: develop
+    users:
+      - the.boss
+      - senior.dev1
+      - senior.dev2
+    groups:
+      - project.developers
+    paths: # path specific reviewers
+      - path: "frontend/**/*.css"
+        users:
+          - ux.expert1
+          - ux.expert2
+        groups:
+          - designers
+
+# Workzone Flow
+wz-workflow:
+  push-after-pr: true
+  unapprove-pr: true
+
+# Webhooks
+# For a list of available events, please refer to:
+# https://confluence.atlassian.com/bitbucketserver0610/event-payload-989761420.html
+webhooks:
+  - name: a_hook
+    active: true
+    url: https://my_endpoint
+    configuration:
+      secret: my_secret
+    events:
+      - pr:modified
+      - repo:refs_changed
+  - name: another_hook
+    active: true
+    url: http://my_other_endpoint
+    configuration:
+      secret: my_other_secret
+    events:
+      - pr:modified
