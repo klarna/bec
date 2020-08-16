@@ -25,6 +25,10 @@ multiple repositories.
 
 Here's a [short presentation][slides] explaining what _BEC_ is about.
 
+## Requirements
+
+_BEC_ requires BitBucket Server 5.5 or superior.
+
 ## Quickstart
 
 To build `bec`, you need Erlang/OTP 21+ and rebar3 installed on your machine.
