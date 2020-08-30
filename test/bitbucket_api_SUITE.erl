@@ -12,6 +12,7 @@
         , set_default_branch/1
         , get_wz_branch_reviewers/1
         , get_wz_branch_reviewers_when_none_configured/1
+        , get_wz_branch_reviewers_with_mandatory/1
         ]).
 
 -include_lib("common_test/include/ct.hrl").
@@ -61,6 +62,13 @@ init_per_testcase(get_wz_branch_reviewers_when_none_configured, Config) ->
             {ok, {{"1.1", 204, "No Content"}, [], []}}
         end,
   ok = meck:expect(httpc, request, Fun),
+  Config;
+init_per_testcase(get_wz_branch_reviewers_with_mandatory, Config) ->
+  {ok, Body} = body(Config, get_wz_branch_reviewers_with_mandatory),
+  Fun = fun('get', _, _, _) ->
+            {ok, {{"1.1", 200, "OK"}, [], Body}}
+        end,
+  ok = meck:expect(httpc, request, Fun),
   Config.
 
 end_per_testcase(_TestCase, _Config) ->
@@ -73,6 +81,7 @@ all() ->
   , set_default_branch
   , get_wz_branch_reviewers
   , get_wz_branch_reviewers_when_none_configured
+  , get_wz_branch_reviewers_with_mandatory
   ].
 
 get_default_branch(_Config) ->
@@ -105,6 +114,8 @@ get_wz_branch_reviewers(_Config) ->
                            , groups => [<<"group.b">>]
                            }
                         ]
+       , 'mandatory-users' => []
+       , 'mandatory-groups' => []
        }
     ],
   ?assertEqual( { ok
@@ -117,6 +128,30 @@ get_wz_branch_reviewers_when_none_configured(_Config) ->
                 , []
                 }
               , bitbucket:get_wz_branch_reviewers(?PROJECT_KEY, ?REPO_SLUG)).
+
+get_wz_branch_reviewers_with_mandatory(_Config) ->
+  ExpectedResult =
+    [ #{ 'branch-id'         => <<"integration">>
+       , users               => [<<"user.a">>]
+       , groups              => [<<"group.a">>]
+       , paths               => [ #{ path => <<"lib/**">>
+                                   , users => [<<"user.b">>]
+                                   , groups => []
+                                   }
+                                , #{ path => <<"another_lib/**">>
+                                   , users =>  []
+                                   , groups => [<<"group.b">>]
+                                   }
+                                ]
+        , 'mandatory-users'  => [<<"user.a">>]
+        , 'mandatory-groups' => [<<"group.a">>]
+       }
+    ],
+  ?assertEqual( { ok
+                , ExpectedResult
+                }
+              , bitbucket:get_wz_branch_reviewers(?PROJECT_KEY, ?REPO_SLUG)).
+
 
 body(Config, TestCase) ->
   DataDir = ?config(data_dir, Config),

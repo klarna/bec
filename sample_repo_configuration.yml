@@ -115,6 +115,9 @@ wz-branch-reviewers:
       - senior.dev2
     groups:
       - project.developers
+    mandatory-users:
+      - the.boss
+    mandatory-groups: []
     paths: # path specific reviewers
       - path: "frontend/**/*.css"
         users:
