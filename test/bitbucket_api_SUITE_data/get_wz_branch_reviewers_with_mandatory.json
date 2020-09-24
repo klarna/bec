@@ -1,0 +1,49 @@
+[
+  {
+    "projectKey": "a_project",
+    "repoSlug": "a_repo",
+    "refName": "refs/heads/integration",
+    "users": [
+      {
+        "name": "user.a"
+      }
+    ],
+    "groups": [
+      "group.a"
+    ],
+    "mandatoryUsers": [
+      {
+        "name": "user.a"
+      }
+    ],
+    "mandatoryGroups": [
+      "group.a"
+    ],
+    "topSuggestedReviewers": 0,
+    "daysInPast": 0,
+    "filePathReviewers": [
+      {
+        "filePathPattern": "lib/**",
+        "includeExcludeEnabled": false,
+        "users": [
+          {
+            "name": "user.b"
+          }
+        ],
+        "groups": [],
+        "mandatoryUsers": [],
+        "mandatoryGroups": []
+      },
+      {
+        "filePathPattern": "another_lib/**",
+        "includeExcludeEnabled": false,
+        "users": [],
+        "groups": [
+          "group.b"
+        ],
+        "mandatoryUsers": [],
+        "mandatoryGroups": []
+      }
+    ]
+  }
+]

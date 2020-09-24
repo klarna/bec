@@ -175,7 +175,11 @@ from_permission_type('REPO_READ')  -> read.
 -spec to_wz_branch_reviewer(map()) -> bec_wz_branch_reviewer_t:reviewer().
 to_wz_branch_reviewer(#{<<"paths">> := Paths} = R0) ->
   R = R0#{<<"paths">> => lists:sort([atomify_keys(P) || P <- Paths])},
-  atomify_keys(R).
+  Mandatory = #{<<"mandatory-users">>  => []
+              , <<"mandatory-groups">> => []
+              },
+  Merged = maps:merge(Mandatory, R),
+  atomify_keys(Merged).
 
 -spec atomify_keys(map()) -> map().
 atomify_keys(Map) ->

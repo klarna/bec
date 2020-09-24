@@ -41,6 +41,15 @@ groups() ->
   unique_list(group(), {map, groupname}).
 
 %%==============================================================================
+%% Mandatory attributes
+%%==============================================================================
+mandatory_users() ->
+  unique_list(username()).
+
+mandatory_groups() ->
+  unique_list(groupname()).
+
+%%==============================================================================
 %% Permission User
 %%==============================================================================
 permission_type() ->
@@ -180,12 +189,14 @@ wz_branch_reviewers() ->
   unique_list(wz_branch_reviewer(), {map, 'branch-id'}).
 
 wz_branch_reviewer() ->
-  ?LET( {BranchId, Users, Groups, Paths}
-      , {branch_id(), usernames(), groupnames(), unique_list(wz_path())}
-      , #{ 'branch-id' => BranchId
-         , users       => Users
-         , groups      => Groups
-         , paths       => Paths
+  ?LET( {BranchId, Users, Groups, Paths, MandatoryUsers, MandatoryGroups}
+      , {branch_id(), usernames(), groupnames(), unique_list(wz_path()), mandatory_users(), mandatory_groups()}
+      , #{ 'branch-id'        => BranchId
+         , users              => Users
+         , groups             => Groups
+         , paths              => Paths
+         , 'mandatory-users'  => MandatoryUsers
+         , 'mandatory-groups' => MandatoryGroups
          }).
 
 wz_path() ->
