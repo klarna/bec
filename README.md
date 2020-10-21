@@ -68,6 +68,12 @@ Usage: bec [-h] [-c [<config>]] [-r [<repo_config>]]
 
 ```
 
+### Build with Docker
+
+```bash
+docker run --rm --name erlangbuilder -v ${PWD}:/bec  -w=/bec  erlang rebar3 escriptize
+```
+
 ## Sample BitBucket Configuration
 
 Set BitBucket url and credentials in `bitbucket.config`:
