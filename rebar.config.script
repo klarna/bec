@@ -1,0 +1,26 @@
+case os:getenv("GIT_SERVER") of
+  false ->
+    CONFIG;
+  Server ->
+    Project = os:getenv("GIT_PROJECT", ""),
+    RewriteFun = fun({Name, Version}) ->
+                     NewRepo = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, Name])),
+                     {Name, {git, NewRepo, {tag, Version}}};
+                    ({Name, {git, Repo, Version}}) ->
+                     RepoName = filename:basename(Repo, ".git"),
+                     NewRepo = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, RepoName])),
+                     {Name, {git, NewRepo, Version}}
+                 end,
+    %% Rewrite dependencies
+    Deps = proplists:get_value(deps, CONFIG),
+    NewDeps = [RewriteFun(Dep) || Dep <- Deps],
+    %% Rewrite test dependencies
+    Profiles = proplists:get_value(profiles, CONFIG),
+    TestProfile = proplists:get_value(test, Profiles),
+    TestDeps = proplists:get_value(deps, TestProfile),
+    NewTestDeps = [RewriteFun(Dep) || Dep <- TestDeps],
+    NewTestProfile = lists:keystore(deps, 1, TestProfile, {deps, NewTestDeps}),
+    NewProfiles = lists:keyreplace(test, 1, Profiles, {test, NewTestProfile}),
+    %% Forge the final config
+    lists:keystore(profiles, 1, lists:keystore(deps, 1, CONFIG, {deps, NewDeps}), {profiles, NewProfiles})
+end.
