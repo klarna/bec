@@ -20,7 +20,7 @@ branch() ->
 %% User
 %%==============================================================================
 username() ->
-  oneof([<<"user.a">>, <<"user.b">>]).
+  oneof([user_a(), user_b()]).
 
 usernames() ->
   unique_list(username()).
@@ -29,7 +29,7 @@ usernames() ->
 %% Group
 %%==============================================================================
 groupname() ->
-  oneof([<<"team.a">>, <<"team.b">>]).
+  oneof([team_a(), team_b()]).
 
 group() ->
   ?LET(GroupName, groupname(), #{groupname => GroupName}).
@@ -415,3 +415,15 @@ project() ->
 
 repo() ->
   list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")).
+
+team_a() ->
+  list_to_binary(os:getenv("BB_STAGING_TEAM_A", "")).
+
+team_b() ->
+  list_to_binary(os:getenv("BB_STAGING_TEAM_B", "")).
+
+user_a() ->
+  list_to_binary(os:getenv("BB_STAGING_USER_A", "")).
+
+user_b() ->
+  list_to_binary(os:getenv("BB_STAGING_USER_B", "")).
