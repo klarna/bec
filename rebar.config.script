@@ -3,13 +3,13 @@ case os:getenv("GIT_SERVER") of
     CONFIG;
   Server ->
     Project = os:getenv("GIT_PROJECT", ""),
-    RewriteFun = fun({Name, Version}) ->
-                     NewRepo = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, Name])),
-                     {Name, {git, NewRepo, {tag, Version}}};
-                    ({Name, {git, Repo, Version}}) ->
-                     RepoName = filename:basename(Repo, ".git"),
-                     NewRepo = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, RepoName])),
-                     {Name, {git, NewRepo, Version}}
+    RewriteFun = fun({Name, {git, RepoUrl, Version}}) ->
+                     RepoName = filename:basename(RepoUrl, ".git"),
+                     NewRepoUrl = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, RepoName])),
+                     {Name, {git, NewRepoUrl, Version}};
+                    ({Name, Version}) ->
+                     RepoUrl = lists:flatten(io_lib:format("ssh://git@~s/~s/~s.git", [Server, Project, Name])),
+                     {Name, {git, RepoUrl, {tag, Version}}}
                  end,
     %% Rewrite dependencies
     Deps = proplists:get_value(deps, CONFIG),
