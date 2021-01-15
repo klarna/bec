@@ -106,7 +106,8 @@ headers() ->
   Username = application:get_env(bec, bitbucket_username, ""),
   Password = application:get_env(bec, bitbucket_password, ""),
   Credentials = base64:encode_to_string(Username ++ ":" ++ Password),
-  [ {"Authorization", "Basic " ++ Credentials}
+  [
+    {"Authorization", "Basic " ++ Credentials}
   , {"Accept",        "application/json"}
   ].
 
