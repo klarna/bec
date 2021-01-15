@@ -68,8 +68,8 @@ hooks:
   - key: "de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook"
     enabled: true
     settings:
-      locationCount: '2' # The plugin requires an explicit count of how many hooks are set
-      version: '3' # Plugin's API version
+      locationCount: "2" # The plugin requires an explicit count of how many hooks are set
+      version: "3" # Plugin's API version
       branchFilter: ^((proj)|(PROJ))\-.*
       httpMethod: POST
       tagFilter: ^$
@@ -87,10 +87,10 @@ hooks:
 
 # PR Restrictions
 pr-restrictions:
-  required-all-approvers : true
-  required-all-tasks-complete : true
-  required-approvers : 2
-  required-successful-builds : 1
+  required-all-approvers: true
+  required-all-tasks-complete: true
+  required-approvers: 2
+  required-successful-builds: 1
   merge-config:
     default-strategy: no-ff
     enabled-strategies:
@@ -104,7 +104,7 @@ pr-restrictions:
 wz-pr-restrictions:
   - branch-id: develop
     approval-quota: 0 # The percentage of individuals reviewing a PR who must approve it before it can be merged
-    group-quota: 1   # Minimum number of approvals required per group
+    group-quota: 1 # Minimum number of approvals required per group
 
 # Workzone Branch Reviewers
 wz-branch-reviewers:
@@ -125,6 +125,11 @@ wz-branch-reviewers:
           - ux.expert2
         groups:
           - designers
+        mandatory-users:
+          - senior.dev1
+          - senior.dev2
+        mandatory-groups:
+          - project.developers
 
 # Workzone Flow
 wz-workflow:
