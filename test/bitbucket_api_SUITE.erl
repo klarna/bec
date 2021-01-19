@@ -108,10 +108,14 @@ get_wz_branch_reviewers(_Config) ->
        , paths       => [ #{ path => <<"lib/**">>
                            , users => [<<"user.b">>]
                            , groups => []
+                           , 'mandatory-users' => []
+                           , 'mandatory-groups' => []
                            }
                         , #{ path => <<"another_lib/**">>
                            , users =>  []
                            , groups => [<<"group.b">>]
+                           , 'mandatory-users' => []
+                           , 'mandatory-groups' => []
                            }
                         ]
        , 'mandatory-users' => []
@@ -137,10 +141,14 @@ get_wz_branch_reviewers_with_mandatory(_Config) ->
        , paths               => [ #{ path => <<"lib/**">>
                                    , users => [<<"user.b">>]
                                    , groups => []
+                                   , 'mandatory-users' => [<<"user.a">>]
+                                   , 'mandatory-groups' => []
                                    }
                                 , #{ path => <<"another_lib/**">>
                                    , users =>  []
                                    , groups => [<<"group.b">>]
+                                   , 'mandatory-users' => []
+                                   , 'mandatory-groups' => [<<"group.a">>]
                                    }
                                 ]
         , 'mandatory-users'  => [<<"user.a">>]

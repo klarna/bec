@@ -43,7 +43,7 @@ from_map(#{ <<"refName">>           := RefName
    , groups             => lists:sort(Groups)
    , paths              => lists:sort([bec_wz_path_t:from_map(P) || P <- FPR])
    , 'mandatory-users'  => lists:sort([bec_wz_user_t:from_map(U)
-                                        || U <- MUsers])
+                                       || U <- MUsers])
    , 'mandatory-groups' => lists:sort(MGroups)
    }.
 
@@ -55,6 +55,7 @@ to_map(#{ 'branch-id'             := BranchId
         } = Map) ->
   MUsers = maps:get('mandatory-users', Map, []),
   MGroups = maps:get('mandatory-groups', Map, []),
+  
   #{ <<"refName">>               => bec_wz_utils:add_prefix(BranchId)
    , <<"users">>                 => [bec_wz_user_t:to_map(U) || U <- Users]
    , <<"groups">>                => Groups

@@ -31,7 +31,7 @@
           }
         ],
         "groups": [],
-        "mandatoryUsers": [],
+        "mandatoryUsers": [{"name": "user.a"}],
         "mandatoryGroups": []
       },
       {
@@ -42,7 +42,7 @@
           "group.b"
         ],
         "mandatoryUsers": [],
-        "mandatoryGroups": []
+        "mandatoryGroups": ["group.a"]
       }
     ]
   }
