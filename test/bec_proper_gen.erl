@@ -200,11 +200,13 @@ wz_branch_reviewer() ->
          }).
 
 wz_path() ->
-  ?LET( {Groups, Users, Path}
-      , {groupnames(), usernames(), path()}
+  ?LET( {Groups, Users, Path, MandatoryUsers, MandatoryGroups}
+      , {groupnames(), usernames(), path(), mandatory_users(), mandatory_groups()}
       , #{ groups => Groups
          , users  => Users
          , path   => Path
+         , 'mandatory-users'  => MandatoryUsers
+         , 'mandatory-groups' => MandatoryGroups
          }).
 
 path() ->
