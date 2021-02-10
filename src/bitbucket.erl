@@ -164,7 +164,7 @@ get_branch_restrictions(ProjectKey, RepoSlug) ->
   case bitbucket_api:get_branch_restrictions(ProjectKey, RepoSlug) of
     {ok, Response} ->
       Values = maps:get(<<"values">>, Response),
-      {ok, lists:sort([bec_branch_restriction_t:from_map(V) || V <- Values])};
+      {ok, lists:sort([maps:remove(id, X) || X <- [bec_branch_restriction_t:from_map(V) || V <- Values]])};
     {error, Reason} ->
       {error, Reason}
   end.
