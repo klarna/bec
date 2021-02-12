@@ -15,6 +15,9 @@ verify(Path) ->
 -spec verify(string(), opts()) -> boolean().
 verify(Path, Options) ->
   case filename:extension(Path) of
+    ".yaml" ->
+      Config = read(Path),
+      do_verify(Options, Config);
     ".yml"  ->
       Config = read(Path),
       do_verify(Options, Config);
