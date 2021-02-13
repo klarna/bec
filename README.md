@@ -76,8 +76,8 @@ docker run --rm --name erlangbuilder -v ${PWD}:/bec  -w=/bec  erlang rebar3 escr
 
 ## Sample BitBucket Configuration
 
-BEC We support both credential and token authentication.
-However, token authentication will be used instead of credential when both present.
+BEC supports both Basic Authentication (via username/password) and Token-Based Authentication (preferred).
+If both a `token` and a `username/password` pair are provided, the token will take precedence.
 
 Set BitBucket url and credentials in `bitbucket.config`:
 
@@ -87,6 +87,8 @@ Set BitBucket url and credentials in `bitbucket.config`:
 {bitbucket_password, "password"}.
 {bitbucket_token, "someToken"}.
 ```
+
+Please follow [this](https://confluence.atlassian.com/bitbucketserver072/personal-access-tokens-1005335924.html#Personalaccesstokens-Generatingpersonalaccesstokens) guide if you want to generate the token to authenticate.
 
 ## Sample Repo Configuration
 
