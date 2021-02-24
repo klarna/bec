@@ -91,7 +91,6 @@ pr-restrictions:
   required-all-tasks-complete: true
   required-approvers: 2
   required-successful-builds: 1
-  unapprove-on-update: true
   merge-config:
     default-strategy: no-ff
     enabled-strategies:
