@@ -216,13 +216,20 @@ path() ->
 %% PR Restrictions
 %%==============================================================================
 pr_restrictions() ->
-  ?LET( {MergeConfig, AllApprovers, AllTasks, Approvers, Builds}
-      , {merge_config(), bool(), bool(), nat(), nat()}
+  ?LET( { MergeConfig
+        , AllApprovers
+        , AllTasks
+        , Approvers
+        , Builds
+        , UnapproveOnUpdate
+        }
+      , {merge_config(), bool(), bool(), nat(), nat(), bool()}
       , #{ 'merge-config'                => MergeConfig
          , 'required-all-approvers'      => AllApprovers
          , 'required-all-tasks-complete' => AllTasks
          , 'required-approvers'          => Approvers
          , 'required-successful-builds'  => Builds
+         , 'unapprove-on-update'         => UnapproveOnUpdate
          }).
 
 merge_config() ->
