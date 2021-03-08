@@ -103,13 +103,20 @@ do_http_request(Method, Request) ->
 
 -spec headers() -> [{string(), string()}].
 headers() ->
-  Username = application:get_env(bec, bitbucket_username, ""),
-  Password = application:get_env(bec, bitbucket_password, ""),
-  Credentials = base64:encode_to_string(Username ++ ":" ++ Password),
-  [
-    {"Authorization", "Basic " ++ Credentials}
-  , {"Accept",        "application/json"}
+  [ {"Authorization", authorization()}
+  , {"Accept", "application/json"}
   ].
+
+-spec authorization() -> string().
+authorization() ->
+  case application:get_env(bec, bitbucket_token, "") of
+    "" ->
+      Username = application:get_env(bec, bitbucket_username, ""),
+      Password = application:get_env(bec, bitbucket_password, ""),
+      "Basic " ++ base64:encode_to_string(Username ++ ":" ++ Password);
+    Token ->
+      "Bearer " ++ Token
+  end.
 
 -spec handle_result(httpc_result()) ->
         {ok, map()} | {ok, [map()]} | {error, any()}.

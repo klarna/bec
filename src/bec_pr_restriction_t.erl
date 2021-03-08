@@ -18,6 +18,7 @@
                         , 'required-all-tasks-complete' := boolean()
                         , 'required-approvers'          := integer()
                         , 'required-successful-builds'  := boolean()
+                        , 'unapprove-on-update'         := boolean()
                         }.
 
 %%==============================================================================
@@ -35,12 +36,14 @@ from_map(#{ <<"mergeConfig">>              := MergeConfig
           , <<"requiredAllTasksComplete">> := RequiredAllTasksComplete
           , <<"requiredApprovers">>        := RequiresApprovers
           , <<"requiredSuccessfulBuilds">> := RequiredSuccessfulBuilds
+          , <<"unapproveOnUpdate">>        := UnapproveOnUpdate
           }) ->
   #{ 'merge-config'                => bec_merge_config_t:from_map(MergeConfig)
    , 'required-all-approvers'      => RequiredAllApprovers
    , 'required-all-tasks-complete' => RequiredAllTasksComplete
    , 'required-approvers'          => RequiresApprovers
    , 'required-successful-builds'  => RequiredSuccessfulBuilds
+   , 'unapprove-on-update'         => UnapproveOnUpdate
    }.
 
 -spec to_map(restriction()) -> map().
@@ -49,10 +52,12 @@ to_map(#{ 'merge-config'                := MergeConfig
         , 'required-all-tasks-complete' := RequiredAllTasksComplete
         , 'required-approvers'          := RequiresApprovers
         , 'required-successful-builds'  := RequiredSuccessfulBuilds
+        , 'unapprove-on-update'         := UnapproveOnUpdate
         }) ->
   #{ <<"mergeConfig">>              => bec_merge_config_t:to_map(MergeConfig)
    , <<"requiredAllApprovers">>     => RequiredAllApprovers
    , <<"requiredAllTasksComplete">> => RequiredAllTasksComplete
    , <<"requiredApprovers">>        => RequiresApprovers
    , <<"requiredSuccessfulBuilds">> => RequiredSuccessfulBuilds
+   , <<"unapproveOnUpdate">>        => UnapproveOnUpdate
    }.
