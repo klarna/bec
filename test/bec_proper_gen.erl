@@ -175,11 +175,12 @@ wz_pr_restrictions() ->
   unique_list(wz_pr_restriction(), {map, 'branch-id'}).
 
 wz_pr_restriction() ->
-  ?LET( {BranchId, ApprovalQuota, GroupQuota}
-      , {branch_id(), non_zero_nat(), non_zero_nat()}
-      , #{ 'branch-id'      => BranchId
-         , 'approval-quota' => ApprovalQuota
-         , 'group-quota'    => GroupQuota
+  ?LET( {BranchId, ApprovalQuota, GroupQuota, IgnoreSelfApprove}
+      , {branch_id(), non_zero_nat(), non_zero_nat(), bool()}
+      , #{ 'branch-id'           => BranchId
+         , 'approval-quota'      => ApprovalQuota
+         , 'group-quota'         => GroupQuota
+         , 'ignore-self-approve' => IgnoreSelfApprove
          }).
 
 %%==============================================================================
