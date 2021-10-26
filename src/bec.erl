@@ -17,10 +17,12 @@ main(Args) ->
             end;
         {ok, {_Options, NonOptArgs}} ->
             io:format( "Non valid arguments found: ~p~n", [NonOptArgs]),
-            usage(Specs);
+            usage(Specs),
+            erlang:halt(1);
         {error, {Reason, Data}} ->
             io:format( "Error: ~s ~p~n~n", [Reason, Data]),
-            usage(Specs)
+            usage(Specs),
+            erlang:halt(1)
     end.
 
 do_main(Options) ->
@@ -58,7 +60,7 @@ do_main(Options) ->
             io:format("Could not read config file ~p: (~p).~n", [ Config
                                                                 , Reason
                                                                 ]),
-            {error, Reason}
+            erlang:halt(1)
     end.
 
 specs() ->
