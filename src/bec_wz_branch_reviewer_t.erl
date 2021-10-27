@@ -49,13 +49,13 @@ from_map(#{ <<"refName">>           := RefName
 
 -spec to_map(reviewer()) -> map().
 to_map(#{ 'branch-id'             := BranchId
-        , users                   := Users
-        , groups                  := Groups
-        , paths                   := Paths
         } = Map) ->
   MUsers = maps:get('mandatory-users', Map, []),
   MGroups = maps:get('mandatory-groups', Map, []),
-  
+  Users = maps:get('users', Map, []),
+  Groups = maps:get('groups', Map, []),
+  Paths = maps:get('paths', Map, []),
+
   #{ <<"refName">>               => bec_wz_utils:add_prefix(BranchId)
    , <<"users">>                 => [bec_wz_user_t:to_map(U) || U <- Users]
    , <<"groups">>                => Groups
