@@ -170,11 +170,11 @@ do_verify(ProjectKey, RepoSlug, Key, Expected) ->
     true ->
       true;
     false ->
-      %% How to pretty-format these messages with lager?
-      ok = io:format( "[~s/~s] Actual   ==> ~p ~n"
-                    , [ProjectKey, RepoSlug, Actual]),
-      ok = io:format( "[~s/~s] Expected ==> ~p ~n"
-                    , [ProjectKey, RepoSlug, Adapted]),
+      %% Not showing details here since they may contain secrets.
+      %% They were debug-logged above.
+      ok = lager:error( "[~s/~s] Actual does not match Expected"
+                        " (increase verbosity to see details)~n"
+                      , [ProjectKey, RepoSlug]),
       false
   end.
 
