@@ -56,6 +56,7 @@ Then you can run _BEC_:
 ```
 $ bec
 Usage: bec [-h] [-c [<config>]] [-r [<repo_config>]]
+           [-d [<delay>]]
            [-e [<enforce>]] [-k [<keep>]]
            [-v [<verbosity>]]
 
