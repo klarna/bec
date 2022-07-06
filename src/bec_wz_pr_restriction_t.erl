@@ -44,19 +44,19 @@ from_map(#{ <<"refName">>                             := RefName
    }.
 
 -spec to_map(restriction()) -> map().
-to_map(#{ 'branch-id'      := BranchId
-        } = Map) ->
-  ApprovalQuota = maps:get('approval-quota', Map, 0),
-  GroupQuota = maps:get('group-quota', Map, 0),
-  MergeCondition = maps:get('merge-condition', Map, ""),
+to_map(#{ 'branch-id' := BranchId } = Map) ->
+  ApprovalQuota     = maps:get('approval-quota', Map, 0),
+  GroupQuota        = maps:get('group-quota', Map, 0),
+  MergeCondition    = maps:get('merge-condition', Map, ""),
   IgnoreSelfApprove = maps:get('ignore-self-approve', Map, false),
+  RefName           = bec_wz_utils:add_prefix(BranchId),
   #{ <<"approvalQuota">>                       => ApprovalQuota
    , <<"approvalQuotaEnabled">>                => true
    , <<"automergeUsers">>                      => []
    , <<"deleteSourceBranch">>                  => false
    , <<"groupQuota">>                          => GroupQuota
    , <<"mergeCondition">>                      => MergeCondition
-   , <<"refName">> => bec_wz_utils:add_prefix(BranchId)
+   , <<"refName">>                             => RefName
    , <<"requiredBuildsCount">>                 => <<>>
    , <<"requiredSignaturesCount">>             => <<>>
    , <<"srcRefName">>                          => <<>>
