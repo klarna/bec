@@ -34,8 +34,8 @@ from_map(#{ <<"refName">>                             := RefName
           , <<"approvalQuota">>                       := ApprovalQuota
           , <<"groupQuota">>                          := GroupQuota
           , <<"ignoreContributingReviewersApproval">> := IgnoreSelfApprove
-          , <<"mergeCondition">>                      := MergeCondition
-          }) ->
+          } = Map) ->
+  MergeCondition = maps:get(<<"mergeCondition">>, Map, <<"">>),
   #{ 'branch-id'           => bec_wz_utils:strip_prefix(RefName)
    , 'approval-quota'      => binary_to_integer(ApprovalQuota)
    , 'group-quota'         => GroupQuota
