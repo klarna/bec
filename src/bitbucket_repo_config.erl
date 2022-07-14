@@ -25,10 +25,14 @@ verify(Path, Options) ->
       Dirname  = filename:dirname(Path),
       Basename = filename:basename(Path, ".ymlt"),
       VarsPath = filename:join([Dirname, Basename ++ ".ymlv"]),
+      %% Convert Delay to milliseconds
+      Delay    = proplists:get_value(delay, Options, 0) * 1000,
       Vars = read_vars(VarsPath),
       All = [begin
                [Config] = read_template(Path, Var),
-               do_verify(Options, Config)
+               Result = do_verify(Options, Config),
+               timer:sleep(Delay),
+               Result
              end || Var <- Vars],
       lists:all(fun(true) -> true; (false) -> false end, All);
     Ext ->
@@ -170,11 +174,11 @@ do_verify(ProjectKey, RepoSlug, Key, Expected) ->
     true ->
       true;
     false ->
-      %% How to pretty-format these messages with lager?
-      ok = io:format( "[~s/~s] Actual   ==> ~p ~n"
-                    , [ProjectKey, RepoSlug, Actual]),
-      ok = io:format( "[~s/~s] Expected ==> ~p ~n"
-                    , [ProjectKey, RepoSlug, Adapted]),
+      %% Not showing details here since they may contain secrets.
+      %% They were debug-logged above.
+      ok = lager:error( "[~s/~s] Actual does not match Expected"
+                        " (increase verbosity to see details)~n"
+                      , [ProjectKey, RepoSlug]),
       false
   end.
 

@@ -34,8 +34,8 @@ from_map(#{ <<"refName">>                             := RefName
           , <<"approvalQuota">>                       := ApprovalQuota
           , <<"groupQuota">>                          := GroupQuota
           , <<"ignoreContributingReviewersApproval">> := IgnoreSelfApprove
-          , <<"mergeCondition">>                      := MergeCondition
-          }) ->
+          } = Map) ->
+  MergeCondition = maps:get(<<"mergeCondition">>, Map, <<"">>),
   #{ 'branch-id'           => bec_wz_utils:strip_prefix(RefName)
    , 'approval-quota'      => binary_to_integer(ApprovalQuota)
    , 'group-quota'         => GroupQuota
@@ -44,19 +44,19 @@ from_map(#{ <<"refName">>                             := RefName
    }.
 
 -spec to_map(restriction()) -> map().
-to_map(#{ 'branch-id'      := BranchId
-        } = Map) ->
-  ApprovalQuota = maps:get('approval-quota', Map, 0),
-  GroupQuota = maps:get('group-quota', Map, 0),
-  MergeCondition = maps:get('merge-condition', Map, ""),
+to_map(#{ 'branch-id' := BranchId } = Map) ->
+  ApprovalQuota     = maps:get('approval-quota', Map, 0),
+  GroupQuota        = maps:get('group-quota', Map, 0),
+  MergeCondition    = maps:get('merge-condition', Map, ""),
   IgnoreSelfApprove = maps:get('ignore-self-approve', Map, false),
+  RefName           = bec_wz_utils:add_prefix(BranchId),
   #{ <<"approvalQuota">>                       => ApprovalQuota
    , <<"approvalQuotaEnabled">>                => true
    , <<"automergeUsers">>                      => []
    , <<"deleteSourceBranch">>                  => false
    , <<"groupQuota">>                          => GroupQuota
    , <<"mergeCondition">>                      => MergeCondition
-   , <<"refName">> => bec_wz_utils:add_prefix(BranchId)
+   , <<"refName">>                             => RefName
    , <<"requiredBuildsCount">>                 => <<>>
    , <<"requiredSignaturesCount">>             => <<>>
    , <<"srcRefName">>                          => <<>>

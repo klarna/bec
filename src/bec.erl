@@ -39,8 +39,10 @@ do_main(Options) ->
                 RepoConfig ->
                     Enforce = proplists:get_value(enforce, Options),
                     K       = proplists:get_value(keep, Options),
+                    Delay   = proplists:get_value(delay, Options),
                     case bitbucket_repo_config:verify( RepoConfig,
                                                        [ {enforce, Enforce}
+                                                       , {delay, Delay}
                                                        , {abort_on_error, not K}
                                                        ]) of
                         true ->
@@ -70,6 +72,8 @@ specs() ->
       , "The BitBucket Config File"}
     , { repo_config, $r, "repo_config", {string, undefined}
       , "The Repo Config to check or configure"}
+    , { delay,       $d, "delay",       {integer, 0}
+      , "Delay (in seconds) between trying each repo_config"}
     , { enforce,     $e, "enforce",     {boolean, false}
       , "Enforce values when they do not match expectations"}
     , { keep,        $k, "keep",        {boolean, false}
