@@ -105,6 +105,8 @@ wz-pr-restrictions:
   - branch-id: develop
     approval-quota: 0 # The percentage of individuals reviewing a PR who must approve it before it can be merged
     group-quota: 1 # Minimum number of approvals required per group
+    ignore-self-approve: true # Pull request code contributor approvals are not counted towards quotas
+    merge-condition: "approvalCount > 1 & groupQuota >= 1"
 
 # Workzone Branch Reviewers
 wz-branch-reviewers:

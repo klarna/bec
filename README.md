@@ -56,12 +56,14 @@ Then you can run _BEC_:
 ```
 $ bec
 Usage: bec [-h] [-c [<config>]] [-r [<repo_config>]]
+           [-d [<delay>]]
            [-e [<enforce>]] [-k [<keep>]]
            [-v [<verbosity>]]
 
   -h, --help         Show this help message
   -c, --config       The BitBucket Config File [default: bitbucket.config]
   -r, --repo_config  The Repo Config to check or configure [default: undefined]
+  -d, --delay        Delay (in seconds) between trying each repo_config  
   -e, --enforce      Enforce values when they do not match expectations [default: false]
   -k, --keep         Keep going after the first error (always true when enforce == true) [default: false]
   -v, --verbosity    Verbosity Level [default: 1]

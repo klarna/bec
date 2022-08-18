@@ -25,10 +25,14 @@ verify(Path, Options) ->
       Dirname  = filename:dirname(Path),
       Basename = filename:basename(Path, ".ymlt"),
       VarsPath = filename:join([Dirname, Basename ++ ".ymlv"]),
+      %% Convert Delay to milliseconds
+      Delay    = proplists:get_value(delay, Options, 0) * 1000,
       Vars = read_vars(VarsPath),
       All = [begin
                [Config] = read_template(Path, Var),
-               do_verify(Options, Config)
+               Result = do_verify(Options, Config),
+               timer:sleep(Delay),
+               Result
              end || Var <- Vars],
       lists:all(fun(true) -> true; (false) -> false end, All);
     Ext ->

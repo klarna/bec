@@ -17,10 +17,12 @@ main(Args) ->
             end;
         {ok, {_Options, NonOptArgs}} ->
             io:format( "Non valid arguments found: ~p~n", [NonOptArgs]),
-            usage(Specs);
+            usage(Specs),
+            erlang:halt(1);
         {error, {Reason, Data}} ->
             io:format( "Error: ~s ~p~n~n", [Reason, Data]),
-            usage(Specs)
+            usage(Specs),
+            erlang:halt(1)
     end.
 
 do_main(Options) ->
@@ -37,8 +39,10 @@ do_main(Options) ->
                 RepoConfig ->
                     Enforce = proplists:get_value(enforce, Options),
                     K       = proplists:get_value(keep, Options),
+                    Delay   = proplists:get_value(delay, Options),
                     case bitbucket_repo_config:verify( RepoConfig,
                                                        [ {enforce, Enforce}
+                                                       , {delay, Delay}
                                                        , {abort_on_error, not K}
                                                        ]) of
                         true ->
@@ -58,7 +62,7 @@ do_main(Options) ->
             io:format("Could not read config file ~p: (~p).~n", [ Config
                                                                 , Reason
                                                                 ]),
-            {error, Reason}
+            erlang:halt(1)
     end.
 
 specs() ->
@@ -68,6 +72,8 @@ specs() ->
       , "The BitBucket Config File"}
     , { repo_config, $r, "repo_config", {string, undefined}
       , "The Repo Config to check or configure"}
+    , { delay,       $d, "delay",       {integer, 0}
+      , "Delay (in seconds) between trying each repo_config"}
     , { enforce,     $e, "enforce",     {boolean, false}
       , "Enforce values when they do not match expectations"}
     , { keep,        $k, "keep",        {boolean, false}
