@@ -16,14 +16,20 @@ main(Args) ->
                     do_main(Options)
             end;
         {ok, {_Options, NonOptArgs}} ->
-            io:format( "Non valid arguments found: ~p~n", [NonOptArgs]),
             usage(Specs),
-            erlang:halt(1);
+            print_error_and_exit("Non valid arguments found: ~p~n", [NonOptArgs]);
         {error, {Reason, Data}} ->
-            io:format( "Error: ~s ~p~n~n", [Reason, Data]),
             usage(Specs),
-            erlang:halt(1)
+            print_error_and_exit("Error: ~s ~p~n~n", [Reason, Data])
     end.
+
+print_error_and_exit(Fmt, Args) ->
+    io:format(Fmt, Args),
+    flush_and_exit(1).
+
+flush_and_exit(Code) ->
+    application:stop(lager),
+    erlang:halt(Code).
 
 do_main(Options) ->
     Config = proplists:get_value(config, Options),
@@ -48,21 +54,17 @@ do_main(Options) ->
                         true ->
                             ok;
                         false ->
-                            %% Give lager an opportunity to flush its buffers
-                            application:stop(lager),
                             case Enforce of
-                                true ->
-                                    ok;
-                                false ->
-                                    erlang:halt(1)
+                                true -> flush_and_exit(0);
+                                false -> flush_and_exit(1)
                             end
                     end
             end;
         {error, Reason} ->
-            io:format("Could not read config file ~p: (~p).~n", [ Config
-                                                                , Reason
-                                                                ]),
-            erlang:halt(1)
+            print_error_and_exit("Could not read config file ~p: (~p).~n",
+                                 [ Config
+                                 , Reason
+                                 ])
     end.
 
 specs() ->
