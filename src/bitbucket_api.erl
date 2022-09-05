@@ -271,7 +271,7 @@ set_wz_workflow(ProjectKey, RepoSlug, Map) ->
 %%==============================================================================
 -spec delete_permissions_group( project_key()
                               , repo_slug()
-                              , bec_groupname_t:name()) ->
+                              , bec_group_t:name()) ->
         {ok, map()} | {error, any()}.
 delete_permissions_group(ProjectKey, RepoSlug, GroupName) ->
   Fmt   = "/rest/api/~s/projects/~s/repos/~s/permissions/groups",
@@ -310,7 +310,7 @@ get_permissions_users(ProjectKey, RepoSlug) ->
 -spec set_permissions_group( project_key()
                            , repo_slug()
                            , bec_permission_group_t:permission_type()
-                           , bec_groupname_t:name()
+                           , bec_group_t:name()
                            ) -> {ok, map()} | {error, any()}.
 set_permissions_group(ProjectKey, RepoSlug, Permission, Groupname) ->
   Fmt   = "/rest/api/~s/projects/~s/repos/~s/permissions/groups",
