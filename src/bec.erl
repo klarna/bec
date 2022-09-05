@@ -19,7 +19,8 @@ main(Args) ->
             end;
         {ok, {_Options, NonOptArgs}} ->
             usage(Specs),
-            print_error_and_exit("Non valid arguments found: ~p~n", [NonOptArgs]);
+            print_error_and_exit("Non valid arguments found: ~p~n",
+                                 [NonOptArgs]);
         {error, {Reason, Data}} ->
             usage(Specs),
             print_error_and_exit("Error: ~s ~p~n~n", [Reason, Data])
