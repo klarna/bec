@@ -1,5 +1,7 @@
 -module(bec).
 
+-compile([{parse_transform, lager_transform}]).
+
 -export([ main/1 ]).
 
 -spec main([string()]) -> ok.
@@ -24,7 +26,7 @@ main(Args) ->
     end.
 
 print_error_and_exit(Fmt, Args) ->
-    io:format(Fmt, Args),
+    lager:error(Fmt, Args),
     flush_and_exit(1).
 
 flush_and_exit(Code) ->
@@ -40,7 +42,7 @@ do_main(Options) ->
         ok ->
             case proplists:get_value(repo_config, Options) of
                 undefined ->
-                    io:format( "Please specify a repo_config.~n", []),
+                    lager:error("Please specify a repo_config.~n", []),
                     usage();
                 RepoConfig ->
                     Enforce = proplists:get_value(enforce, Options),
