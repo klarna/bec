@@ -46,6 +46,13 @@ do_main(Options) ->
             Enforce = proplists:get_value(enforce, Options),
             K       = proplists:get_value(keep, Options),
             Delay   = proplists:get_value(delay, Options),
+            {ok, BitbucketUrl} =
+                application:get_env(bec, bitbucket_url),
+            {ok, BitbucketUserName} =
+                application:get_env(bec, bitbucket_username),
+
+            lager:info("Bitbucket URL: ~s~n", [BitbucketUrl]),
+            lager:info("Bitbucket user: ~s~n", [BitbucketUserName]),
             case bitbucket_repo_config:verify( RepoConfig,
                                                [ {enforce, Enforce}
                                                , {delay, Delay}
