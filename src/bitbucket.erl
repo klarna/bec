@@ -113,7 +113,7 @@ get_default_branch(ProjectKey, RepoSlug) ->
                         , bec_branch_t:id()) ->
         ok | {error, any()}.
 set_default_branch(ProjectKey, RepoSlug, BranchId) ->
-  case bitbucket_api:set_default_branch(ProjectKey, RepoSlug, BranchId) of
+  case bitbucket_api:set_default_branch(ProjectKey, RepoSlug, #{id => BranchId}) of
     {ok, #{}} ->
       ok;
     {error, Reason} ->
