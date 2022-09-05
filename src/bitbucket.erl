@@ -101,6 +101,10 @@ set_ssh_keys(ProjectKey, RepoSlug, Keys) ->
         {ok, bec_branch_t:id()} | {error, any()}.
 get_default_branch(ProjectKey, RepoSlug) ->
   case bitbucket_api:get_default_branch(ProjectKey, RepoSlug) of
+    {ok, Response} when Response =:= #{} ->
+      lager:error("Default branch not found. This might be because you haven't "
+                  "pushed any commits to the repo yet."),
+      throw(default_branch_not_found);
     {ok, Response} ->
       Branch = bec_branch_t:from_map(Response),
       {ok, maps:get(id, Branch)};
