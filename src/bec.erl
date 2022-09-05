@@ -25,6 +25,7 @@ main(Args) ->
             print_error_and_exit("Error: ~s ~p~n~n", [Reason, Data])
     end.
 
+-spec print_error_and_exit(Fmt :: io:format(), Args :: [term()]) -> no_return().
 print_error_and_exit(Fmt, Args) ->
     lager:error(Fmt, Args),
     flush_and_exit(1).
