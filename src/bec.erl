@@ -40,24 +40,21 @@ do_main(Options) ->
     application:ensure_all_started(bec),
     case bitbucket_config:load(Config) of
         ok ->
-            case proplists:get_value(repo_config, Options) of
-                undefined ->
-                    lager:error("Please specify a repo_config.~n", []),
-                    usage();
-                RepoConfig ->
-                    Enforce = proplists:get_value(enforce, Options),
-                    K       = proplists:get_value(keep, Options),
-                    case bitbucket_repo_config:verify( RepoConfig,
-                                                       [ {enforce, Enforce}
-                                                       , {abort_on_error, not K}
-                                                       ]) of
-                        true ->
-                            ok;
-                        false ->
-                            case Enforce of
-                                true -> flush_and_exit(0);
-                                false -> flush_and_exit(1)
-                            end
+            RepoConfig = proplists:get_value(repo_config, Options),
+            Enforce = proplists:get_value(enforce, Options),
+            K       = proplists:get_value(keep, Options),
+            Delay   = proplists:get_value(delay, Options),
+            case bitbucket_repo_config:verify( RepoConfig,
+                                               [ {enforce, Enforce}
+                                               , {delay, Delay}
+                                               , {abort_on_error, not K}
+                                               ]) of
+                true ->
+                    ok;
+                false ->
+                    case Enforce of
+                        true -> flush_and_exit(0);
+                        false -> flush_and_exit(1)
                     end
             end;
         {error, Reason} ->
