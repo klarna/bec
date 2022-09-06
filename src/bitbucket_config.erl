@@ -12,7 +12,6 @@ load(Path) ->
             [ok = application:set_env(bec, K, V) || {K, V} <- Config],
             ok;
         {error, Reason} ->
-            lager:error( "Error while reading config file ~p (~p).~n"
-                       , [Path, Reason]),
+            %% Error will be printed higher up in the call chain
             {error, Reason}
     end.
