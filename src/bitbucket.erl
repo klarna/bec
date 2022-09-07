@@ -98,9 +98,13 @@ set_ssh_keys(ProjectKey, RepoSlug, Keys) ->
 %% Default Branch
 %%==============================================================================
 -spec get_default_branch(project_key(), repo_slug()) ->
-        {ok, bec_branch_t:branch_id()} | {error, any()}.
+        {ok, bec_branch_t:id()} | {error, any()}.
 get_default_branch(ProjectKey, RepoSlug) ->
   case bitbucket_api:get_default_branch(ProjectKey, RepoSlug) of
+    {ok, Response} when Response =:= #{} ->
+      lager:error("Default branch not found. This might be because you haven't "
+                  "pushed any commits to the repo yet."),
+      throw(default_branch_not_found);
     {ok, Response} ->
       Branch = bec_branch_t:from_map(Response),
       {ok, maps:get(id, Branch)};
@@ -110,10 +114,11 @@ get_default_branch(ProjectKey, RepoSlug) ->
 
 -spec set_default_branch( project_key()
                         , repo_slug()
-                        , bec_branch_t:branch_id()) ->
+                        , bec_branch_t:id()) ->
         ok | {error, any()}.
 set_default_branch(ProjectKey, RepoSlug, BranchId) ->
-  case bitbucket_api:set_default_branch(ProjectKey, RepoSlug, BranchId) of
+  case bitbucket_api:set_default_branch(ProjectKey, RepoSlug,
+                                        #{id => BranchId}) of
     {ok, #{}} ->
       ok;
     {error, Reason} ->
@@ -321,7 +326,7 @@ set_wz_pr_restrictions(ProjectKey, RepoSlug, Restrictions) ->
 %% Workzone Workflow
 %%==============================================================================
 -spec get_wz_workflow(project_key(), repo_slug()) ->
-        {ok, bec_wz_workflow:workflow()} | {error, any()}.
+        {ok, bec_wz_workflow_t:workflow()} | {error, any()}.
 get_wz_workflow(ProjectKey, RepoSlug) ->
   case bitbucket_api:get_wz_workflow(ProjectKey, RepoSlug) of
     {ok, Response} ->

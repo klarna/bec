@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest]
-        otp-version: [21.3, 22.2, 23.0]
+        otp-version: [23, 24, 25]
     runs-on: ${{ matrix.platform }}
     container:
       image: erlang:${{ matrix.otp-version }}
@@ -34,6 +34,8 @@ jobs:
           ${{ runner.os }}-dialyzer-
     - name: Compile
       run: rebar3 as test compile
+    - name: Dialyzer
+      run: rebar3 dialyzer
     - name: Run EUnit Tests
       run: rebar3 eunit
     - name: Run CT Tests
