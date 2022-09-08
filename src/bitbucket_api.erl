@@ -53,6 +53,18 @@
         , delete_webhook/3
         , get_webhooks/2
         , set_webhook/3
+
+          %% For testing
+        , create_project/1
+        , delete_project/1
+        , create_repo/2
+        , delete_repo/2
+        , create_group/1
+        , remove_group/1
+        , create_user/4
+        , remove_user/1
+        , create_branch/3
+        , add_user_to_groups/1
         ]).
 
 -include("bitbucket.hrl").
@@ -405,6 +417,102 @@ set_webhook(ProjectKey, RepoSlug, Map) ->
   Args  = [?API_VSN, ProjectKey, RepoSlug],
   Url   = format_url(Fmt, Args),
   bitbucket_http:post_request(Url, jsx:encode(Map)).
+
+%%==============================================================================
+%% Tests
+%%==============================================================================
+-spec create_project(Map :: map()) ->
+        {ok, map()} | {error, map()}.
+create_project(Map) ->
+  Fmt   = "/rest/api/~s/projects",
+  Args  = [?API_VSN],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(Map)).
+
+-spec delete_project(Key :: project_key()) ->
+        {ok, map()} | {error, map()}.
+delete_project(Key) ->
+  Fmt   = "/rest/api/~s/projects/~s",
+  Args  = [?API_VSN, Key],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:delete_request(Url).
+
+-spec create_repo(Key :: project_key(),
+                  Map :: map()) ->
+        {ok, map()} | {error, map()}.
+create_repo(Key, Map) ->
+  Fmt   = "/rest/api/~s/projects/~s/repos",
+  Args  = [?API_VSN, Key],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(Map)).
+
+-spec delete_repo(Key :: project_key(),
+                  RepoSlug :: repo_slug()) ->
+        {ok, map()} | {error, map()}.
+delete_repo(Key, RepoSlug) ->
+  Fmt   = "/rest/api/~s/projects/~s/repos/~s",
+  Args  = [?API_VSN, Key, RepoSlug],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:delete_request(Url).
+
+-spec create_group(Group :: group()) ->
+        {ok, map()} | {error, map()}.
+create_group(Group) ->
+  Fmt   = "/rest/api/~s/admin/groups?name=~s",
+  Args  = [?API_VSN, Group],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(#{})).
+
+-spec remove_group(Group :: group()) ->
+        {ok, map()} | {error, map()}.
+remove_group(Group) ->
+  Fmt   = "/rest/api/~s/admin/groups?name=~s",
+  Args  = [?API_VSN, Group],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:delete_request(Url, jsx:encode(#{})).
+
+-spec create_user(UserName :: user(),
+                  UserEmail :: email(),
+                  UserDisplayName :: binary(),
+                  Password :: binary()) ->
+        {ok, map()} | {error, map()}.
+create_user(UserName, UserEmail, UserDisplayName, Password) ->
+  Fmt   = "/rest/api/~s/admin/users?~s",
+  Args  = [?API_VSN,
+           uri_string:compose_query([ {"emailAddress", UserEmail}
+                                    , {"displayName", UserDisplayName}
+                                    , {"name", UserName}
+                                    , {"password", Password}
+                                    ])],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(#{})).
+
+-spec remove_user(UserName :: user()) ->
+        {ok, map()} | {error, map()}.
+remove_user(UserName) ->
+  Fmt   = "/rest/api/~s/admin/users?name=~s",
+  Args  = [?API_VSN, UserName],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:delete_request(Url, jsx:encode(#{})).
+
+-spec create_branch(ProjectKey :: project_key(),
+                    RepoSlug :: repo_slug(),
+                    Map :: map()) ->
+        {ok, map()} | {error, map()}.
+create_branch(ProjectKey, RepoSlug, Map) ->
+  Fmt   = "/rest/api/~s/projects/~s/repos/~s/branches",
+  Args  = [?API_VSN, ProjectKey, RepoSlug],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(Map)).
+
+-spec add_user_to_groups(Map :: map()) ->
+        {ok, map()} | {error, map()}.
+add_user_to_groups(Map) ->
+  Fmt   = "/rest/api/~s/admin/users/add-groups",
+  Args  = [?API_VSN],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:post_request(Url, jsx:encode(Map)).
+
 
 %%==============================================================================
 %% Internal Functions
