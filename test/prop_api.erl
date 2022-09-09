@@ -184,6 +184,8 @@ set_groups_post(_S, _Args, ok) ->
 get_hook_settings(Key, Slug, Hook) ->
   bitbucket:get_hook_settings(Key, Slug, Hook).
 
+get_hook_settings_args(#{hooks := []}) ->
+  true;
 get_hook_settings_args(S) ->
   ?LET( {Hook, _}
       , case maps:get(configured_hooks, S) of
@@ -203,10 +205,11 @@ get_hook_settings_next(S, _R, [_Key, _Slug, _Hook]) ->
   S.
 
 get_hook_settings_pre(S) ->
-  maps:get(configured_hooks, S) =/= [].
+  maps:get(configured_hooks, S) =/= [] andalso
+    maps:get(hooks, S) =/= [].
 
 get_hook_settings_pre(S, _Args) ->
-  maps:get(configured_hooks, S) =/= [].
+  get_hook_settings_pre(S).
 
 get_hook_settings_post(S, [_Key, _Slug, Hook], {ok, Settings}) ->
   case proplists:get_value(Hook, maps:get(configured_hooks, S)) of
@@ -223,6 +226,8 @@ get_hook_settings_post(S, [_Key, _Slug, Hook], {ok, Settings}) ->
 set_hook_settings(Key, Slug, Hook, Settings) ->
   bitbucket:set_hook_settings(Key, Slug, Hook, Settings).
 
+set_hook_settings_args(#{hooks := []}) ->
+  true;
 set_hook_settings_args(S) ->
   ?LET( Hook
       , oneof(maps:get(hooks, S))
@@ -231,6 +236,13 @@ set_hook_settings_args(S) ->
         , Hook
         , bec_proper_gen:hook_settings(Hook)
         ]).
+
+set_hook_settings_pre(S) ->
+  maps:get(configured_hooks, S) =/= [] andalso
+    maps:get(hooks, S) =/= [].
+
+set_hook_settings_pre(S, _Args) ->
+  set_hook_settings_pre(S).
 
 set_hook_settings_next(S, _R, [_Key, _Slug, Hook, Settings]) ->
   Hooks0 = maps:get(configured_hooks, S),
