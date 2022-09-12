@@ -49,4 +49,6 @@ setup() ->
   application:set_env(bec, bitbucket_user_a,   UserA),
   application:set_env(bec, bitbucket_user_b,   UserB),
   {ok, Started} = application:ensure_all_started(bec),
+  bec_test_utils:init_bitbucket(),
+  bec_test_utils:init_logging(),
   #{started => Started}.
