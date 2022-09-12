@@ -173,6 +173,16 @@ repo:
   currently supported
 * The BitBucket Paged API is not supported, yet
 
+## Running tests against Bitbucket
+
+The full test suite (including PropEr tests) needs a Bitbucket Server
+instance to run.  Running "rebar3 proper" will check if there is one
+already running on http://localhost:7990 and start one using a docker
+container if no one is found.
+
+This functionality requires
+[docker-compose](https://docs.docker.com/compose/).
+
 ## Author
 
 * Roberto Aloi
