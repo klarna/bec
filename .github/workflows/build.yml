@@ -34,8 +34,6 @@ jobs:
           ${{ runner.os }}-dialyzer-
     - name: Compile
       run: rebar3 as test compile
-    - name: Dialyzer
-      run: rebar3 dialyzer
     - name: Run EUnit Tests
       run: rebar3 eunit
     - name: Run CT Tests
