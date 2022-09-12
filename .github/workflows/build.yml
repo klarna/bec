@@ -30,7 +30,7 @@ jobs:
           SETUP_SYSADMIN_DISPLAYNAME: Admin
           SETUP_SYSADMIN_EMAILADDRESS: admin@example.com
           SEARCH_ENABLED: false
-        options: --health-cmd "curl -s http://localhost:7990/status | grep RUNNING"
+        options: --health-retries 20 --health-cmd "curl -s http://localhost:7990/status | grep RUNNING"
 
     steps:
     - name: Checkout
