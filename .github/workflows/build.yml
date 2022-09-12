@@ -57,8 +57,8 @@ jobs:
         BB_STAGING_URL: http://bitbucket:7990
         BB_STAGING_PROJECT_KEY: TOOLS
         BB_STAGING_REPO_SLUG: bec-test
-        BB_STAGING_GROUP_A: group.a
-        BB_STAGING_GROUP_B: group.b
+        BB_STAGING_TEAM_A: team.a
+        BB_STAGING_TEAM_B: team.b
         BB_STAGING_USER_A: user.a
         BB_STAGING_USER_B: user.b
         BB_STAGING_USERNAME: admin
