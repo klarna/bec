@@ -452,6 +452,8 @@ setup() ->
   application:set_env(bec, bitbucket_username, Username),
   application:set_env(bec, bitbucket_password, Password),
   {ok, Started} = application:ensure_all_started(bec),
+  bec_test_utils:init_bitbucket(),
+  bec_test_utils:init_logging(),
   #{started => Started,
     wz_supported => is_wz_supported()}.
 
@@ -460,6 +462,7 @@ setup() ->
 %% Teardown
 %%==============================================================================
 teardown(#{started := Started}) ->
+  bec_test_utils:deinit_bitbucket(),
   [application:stop(App) || App <- Started],
   ok.
 
