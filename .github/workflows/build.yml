@@ -29,9 +29,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/rebar3/rebar3_*_plt
-        key: ${{ runner.os }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.config')) }}
+        key: ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.config')) }}
         restore-keys: |
-          ${{ runner.os }}-dialyzer-
+          ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-
     - name: Compile
       run: rebar3 as test compile
     - name: Run EUnit Tests
