@@ -22,7 +22,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/rebar3/hex/hexpm/packages
-        key: ${{ runner.os }}-hex-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        key: ${{ runner.os }}-hex-${{ hashFiles('rebar.lock') }}
         restore-keys: |
           ${{ runner.os }}-hex-
     - name: Cache Dialyzer PLTs
@@ -31,7 +31,7 @@ jobs:
         path: |
           ~/.cache/rebar3/rebar3_*_plt
           _build/**/*_plt
-        key: ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.config')) }}
+        key: ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-${{ hashFiles('rebar.config') }}
         restore-keys: |
           ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-
     - name: Compile
