@@ -108,6 +108,18 @@ hook_settings(<<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-ge
 hook_settings(Hook) when is_binary(Hook) ->
   #{}.
 
+supported_hooks() ->
+  [ <<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>
+  , <<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook">>
+  ].
+
+available_hooks() ->
+  ProjectKey  = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
+  RepoSlug    = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
+  {ok, Hooks} = bitbucket:get_hooks(ProjectKey, RepoSlug),
+  InstalledHooks = lists:map(fun(Hook) -> maps:get(key, Hook) end, Hooks),
+  [H || H <- supported_hooks(), lists:member(H, InstalledHooks)].
+
 hook_id() ->
   oneof([ <<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>
         , <<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook">>
@@ -117,14 +129,21 @@ hook_ids() ->
   unique_list(hook_id()).
 
 hooks() ->
-   ?LET( Ids
-       , non_empty(hook_ids())
-       , ?LET( Hooks
-             , [{bool(), I, hook_settings(I)} || I <- Ids]
-             , [#{ <<"enabled">>  => Enabled
-                 , <<"key">>      => Key
-                 , <<"settings">> => Settings
-                 } || {Enabled, Key, Settings} <- Hooks])).
+  case available_hooks() of
+    [] ->
+      %% None of the hooks that BEC supports are installed in this
+      %% Bitbucket instance, so there is nothing we can test here.
+      [];
+    _ ->
+      ?LET( Ids
+          , non_empty(hook_ids())
+          , ?LET( Hooks
+                , [{bool(), I, hook_settings(I)} || I <- Ids]
+                , [#{ <<"enabled">>  => Enabled
+                    , <<"key">>      => Key
+                    , <<"settings">> => Settings
+                    } || {Enabled, Key, Settings} <- Hooks]))
+  end.
 
 %%==============================================================================
 %% Branch Restriction
@@ -364,32 +383,49 @@ unique_list(G, list) ->
 %%==============================================================================
 %% Configuration for YML files
 %%==============================================================================
+
+supported_features() ->
+  #{wz => bec_test_utils:is_wz_supported()}.
+
 config() ->
+  Features = supported_features(),
   ?LET( Map
       , ?LET( Keys
             , config_keys()
-            , [{K, config_value(K)} || K <- Keys]
+            , [{K, config_value(K)} || K <- Keys, is_config_key_supported(K, Features)]
          )
       , maps:from_list(Map)
       ).
+
+is_config_key_supported('wz-workflow', Features) ->
+  maps:get(wz, Features, false);
+is_config_key_supported('wz-pr-restrictions', Features) ->
+  maps:get(wz, Features, false);
+is_config_key_supported('wz-branch-reviewers', Features) ->
+  maps:get(wz, Features, false);
+is_config_key_supported(_, _) ->
+  true.
 
 config_keys_mandatory() ->
   ['project', 'repo'].
 
 config_keys_optional() ->
-  sublist([ 'default-branch'
-          , 'public'
-          , 'users'
-          , 'groups'
-          , 'branch-restrictions'
-          , 'access-keys'
-          , 'hooks'
-          , 'pr-restrictions'
-          , 'wz-workflow'
-          , 'wz-pr-restrictions'
-          , 'wz-branch-reviewers'
-          , 'webhooks'
-          ]).
+  ConfigKeys = [ 'default-branch'
+               , 'public'
+               , 'users'
+               , 'groups'
+               , 'branch-restrictions'
+               , 'access-keys'
+               , 'hooks'
+               , 'pr-restrictions'
+               , 'wz-workflow'
+               , 'wz-pr-restrictions'
+               , 'wz-branch-reviewers'
+               , 'webhooks'
+               ],
+  Features = supported_features(),
+  SupportedConfigKeys = [K || K <- ConfigKeys, is_config_key_supported(K, Features)],
+  sublist(SupportedConfigKeys).
 
 config_keys() ->
   ?LET( Optional

@@ -205,8 +205,7 @@ get_hook_settings_next(S, _R, [_Key, _Slug, _Hook]) ->
   S.
 
 get_hook_settings_pre(S) ->
-  maps:get(configured_hooks, S) =/= [] andalso
-    maps:get(hooks, S) =/= [].
+  maps:get(configured_hooks, S) =/= [].
 
 get_hook_settings_pre(S, _Args) ->
   get_hook_settings_pre(S).
@@ -238,8 +237,7 @@ set_hook_settings_args(S) ->
         ]).
 
 set_hook_settings_pre(S) ->
-  maps:get(configured_hooks, S) =/= [] andalso
-    maps:get(hooks, S) =/= [].
+  maps:get(configured_hooks, S) =/= [].
 
 set_hook_settings_pre(S, _Args) ->
   set_hook_settings_pre(S).
@@ -431,14 +429,6 @@ prop_api() ->
 %% Setup
 %%==============================================================================
 
-is_wz_supported() ->
-  try
-    ok = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
-    true
-  catch _:_ ->
-      false
-  end.
-
 setup() ->
   application:load(bec),
   %% Starting from OTP 21, error logger is not started by default any longer.
@@ -455,7 +445,7 @@ setup() ->
   bec_test_utils:init_bitbucket(),
   bec_test_utils:init_logging(),
   #{started => Started,
-    wz_supported => is_wz_supported()}.
+    wz_supported => bec_test_utils:is_wz_supported()}.
 
 
 %%==============================================================================
@@ -469,6 +459,8 @@ teardown(#{started := Started}) ->
 %%==============================================================================
 %% Internal Functions
 %%==============================================================================
+
+%% Return true for those hooks which are supported by BEC.
 is_hook_supported(<<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>) ->
   true;
 is_hook_supported(<<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook">>) ->

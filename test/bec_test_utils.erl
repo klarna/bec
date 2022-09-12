@@ -4,6 +4,7 @@
 -export([ init_bitbucket/0
         , deinit_bitbucket/0
         , init_logging/0
+        , is_wz_supported/0
         ]).
 
 -compile([{parse_transform, lager_transform}]).
@@ -107,5 +108,13 @@ init_logging() ->
   lager:start(),
   lager:set_loglevel(lager_file_backend, debug),
   lager:set_loglevel(lager_console_backend, none),
-  %% io:format("Lager config:~n~s~n", [lager:status()]).
   ok.
+
+is_wz_supported() ->
+  try
+    ok = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
+    true
+  catch _:_ ->
+      lager:error("Workzone plugin is not supported. Corresponding tests will not be run."),
+      false
+  end.
