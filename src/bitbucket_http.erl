@@ -117,6 +117,7 @@ authorization() ->
         {ok, map()} | {ok, [map()]} | {error, any()}.
 handle_result({ok, {{_Ver, Status, _Phrase}, _H, Body}}) when Status =:= 200;
                                                               Status =:= 201;
+                                                              Status =:= 202;
                                                               Status =:= 204 ->
   {ok, decode_body(Body)};
 handle_result({ok, {{_Version, _Status, _Phrase}, _Headers, Resp}}) ->

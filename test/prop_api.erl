@@ -184,6 +184,8 @@ set_groups_post(_S, _Args, ok) ->
 get_hook_settings(Key, Slug, Hook) ->
   bitbucket:get_hook_settings(Key, Slug, Hook).
 
+get_hook_settings_args(#{hooks := []}) ->
+  true;
 get_hook_settings_args(S) ->
   ?LET( {Hook, _}
       , case maps:get(configured_hooks, S) of
@@ -206,7 +208,7 @@ get_hook_settings_pre(S) ->
   maps:get(configured_hooks, S) =/= [].
 
 get_hook_settings_pre(S, _Args) ->
-  maps:get(configured_hooks, S) =/= [].
+  get_hook_settings_pre(S).
 
 get_hook_settings_post(S, [_Key, _Slug, Hook], {ok, Settings}) ->
   case proplists:get_value(Hook, maps:get(configured_hooks, S)) of
@@ -223,6 +225,8 @@ get_hook_settings_post(S, [_Key, _Slug, Hook], {ok, Settings}) ->
 set_hook_settings(Key, Slug, Hook, Settings) ->
   bitbucket:set_hook_settings(Key, Slug, Hook, Settings).
 
+set_hook_settings_args(#{hooks := []}) ->
+  true;
 set_hook_settings_args(S) ->
   ?LET( Hook
       , oneof(maps:get(hooks, S))
@@ -231,6 +235,12 @@ set_hook_settings_args(S) ->
         , Hook
         , bec_proper_gen:hook_settings(Hook)
         ]).
+
+set_hook_settings_pre(S) ->
+  maps:get(configured_hooks, S) =/= [].
+
+set_hook_settings_pre(S, _Args) ->
+  set_hook_settings_pre(S).
 
 set_hook_settings_next(S, _R, [_Key, _Slug, Hook, Settings]) ->
   Hooks0 = maps:get(configured_hooks, S),
@@ -329,6 +339,8 @@ set_branch_restrictions_post(_S, _Args, ok) ->
 get_wz_branch_reviewers(Key, Slug) ->
   bitbucket:get_wz_branch_reviewers(Key, Slug).
 
+get_wz_branch_reviewers_args(#{is_wz_supported := false}) ->
+  true;
 get_wz_branch_reviewers_args(S) ->
   [maps:get(project_key, S), maps:get(repo_slug, S)].
 
@@ -336,7 +348,8 @@ get_wz_branch_reviewers_next(S, _R, [_Key, _Slug]) ->
   S.
 
 get_wz_branch_reviewers_pre(S) ->
-  maps:is_key(wz_branch_reviewers, S).
+  maps:is_key(wz_branch_reviewers, S) andalso
+    maps:get(is_wz_supported, S, false).
 
 get_wz_branch_reviewers_post(S, _Args, {ok, Reviewers}) ->
   ?assertEqual(lists:sort(Reviewers), lists:sort(maps:get(wz_branch_reviewers, S))),
@@ -348,11 +361,16 @@ get_wz_branch_reviewers_post(S, _Args, {ok, Reviewers}) ->
 set_wz_branch_reviewers(Key, Slug, Reviewers) ->
   bitbucket:set_wz_branch_reviewers(Key, Slug, Reviewers).
 
+set_wz_branch_reviewers_args(#{is_wz_supported := false}) ->
+  true;
 set_wz_branch_reviewers_args(S) ->
   [ maps:get(project_key, S)
   , maps:get(repo_slug, S)
   , bec_proper_gen:wz_branch_reviewers()
   ].
+
+set_wz_branch_reviewers_pre(S) ->
+  maps:get(is_wz_supported, S, false).
 
 set_wz_branch_reviewers_next(S, _R, [_Key, _Slug, Reviewers]) ->
   maps:put(wz_branch_reviewers, Reviewers, S).
@@ -410,6 +428,7 @@ prop_api() ->
 %%==============================================================================
 %% Setup
 %%==============================================================================
+
 setup() ->
   application:load(bec),
   %% Starting from OTP 21, error logger is not started by default any longer.
@@ -423,18 +442,25 @@ setup() ->
   application:set_env(bec, bitbucket_username, Username),
   application:set_env(bec, bitbucket_password, Password),
   {ok, Started} = application:ensure_all_started(bec),
-  #{started => Started}.
+  bec_test_utils:init_bitbucket(),
+  bec_test_utils:init_logging(),
+  #{started => Started,
+    wz_supported => bec_test_utils:is_wz_supported()}.
+
 
 %%==============================================================================
 %% Teardown
 %%==============================================================================
 teardown(#{started := Started}) ->
+  bec_test_utils:deinit_bitbucket(),
   [application:stop(App) || App <- Started],
   ok.
 
 %%==============================================================================
 %% Internal Functions
 %%==============================================================================
+
+%% Return true for those hooks which are supported by BEC.
 is_hook_supported(<<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>) ->
   true;
 is_hook_supported(<<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook">>) ->

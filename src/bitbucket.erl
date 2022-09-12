@@ -56,6 +56,19 @@
           %% Webhooks
         , get_webhooks/2
         , set_webhooks/3
+
+          %% Setting up projects/repos/users, currently only used
+          %% for testing
+        , create_project/1
+        , delete_project/1
+        , create_repo/2
+        , delete_repo/2
+        , create_group/1
+        , remove_group/1
+        , create_user/4
+        , remove_user/1
+        , create_branch/4
+        , add_user_to_groups/2
         ]).
 
 %%==============================================================================
@@ -551,4 +564,75 @@ set_webhooks(ProjectKey, RepoSlug, WebHooks) ->
     #{id := Id} <- OldWebHooks],
   [{ok, _} = bitbucket_api:set_webhook(ProjectKey, RepoSlug, WebHook) ||
     WebHook <- WebHooks],
+  ok.
+
+%%==============================================================================
+%% Testing
+%%==============================================================================
+-spec create_project(Key :: project_key()) -> ok.
+create_project(Key) ->
+  {ok, _} = bitbucket_api:create_project(#{<<"key">> => Key}),
+  ok.
+
+-spec delete_project(Key :: project_key()) -> ok.
+delete_project(Key) ->
+  {ok, _} = bitbucket_api:delete_project(Key),
+  ok.
+
+-spec create_repo(Key :: project_key(), RepoSlug :: repo_slug()) -> ok.
+create_repo(Key, RepoSlug) ->
+  {ok, _} = bitbucket_api:create_repo(Key, #{<<"slug">> => RepoSlug,
+                                             <<"name">> => RepoSlug,
+                                             <<"scmId">> => <<"git">>}),
+  ok.
+
+-spec delete_repo(Key :: project_key(), RepoSlug :: repo_slug()) -> ok.
+delete_repo(Key, RepoSlug) ->
+  {ok, _} = bitbucket_api:delete_repo(Key, RepoSlug),
+  ok.
+
+-spec create_group(Group :: group()) -> ok.
+create_group(Group) ->
+  {ok, _} = bitbucket_api:create_group(Group),
+  ok.
+
+-spec remove_group(Group :: group()) -> ok.
+remove_group(Group) ->
+  {ok, _} = bitbucket_api:remove_group(Group),
+  ok.
+
+-spec create_user(UserName :: user(),
+                  UserEmail :: email(),
+                  UserDisplayName :: binary(),
+                  Password :: binary()) ->
+        ok.
+create_user(UserName, UserEmail, UserDisplayName, Password) ->
+  {ok, _} = bitbucket_api:create_user(UserName,
+                                      UserEmail,
+                                      UserDisplayName,
+                                      Password),
+  ok.
+
+-spec remove_user(UserName :: user()) -> ok.
+remove_user(UserName) ->
+  {ok, _} = bitbucket_api:remove_user(UserName),
+  ok.
+
+-spec create_branch(ProjectKey :: project_key(),
+                    RepoSlug :: repo_slug(),
+                    BranchName :: branch_id(),
+                    StartPoint :: branch_id()) ->
+        ok.
+create_branch(ProjectKey, RepoSlug, BranchName, StartPoint) ->
+  {ok, _} = bitbucket_api:create_branch(ProjectKey, RepoSlug,
+                                       #{<<"name">> => BranchName,
+                                         <<"startPoint">> => StartPoint}),
+  ok.
+
+-spec add_user_to_groups(User :: user(),
+                        Groups :: [group()]) ->
+        ok.
+add_user_to_groups(User, Groups) ->
+  {ok, _} = bitbucket_api:add_user_to_groups(#{<<"user">> => User,
+                                               <<"groups">> => Groups}),
   ok.
