@@ -12,7 +12,8 @@
 cmd(Fmt, Args) ->
   Cmd = lists:flatten(io_lib:format(Fmt, Args)),
   %% TODO log command output somewhere
-  os:cmd(Cmd).
+  os:cmd(Cmd),
+  ok.
 
 init_repo() ->
   Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
