@@ -341,6 +341,8 @@ set_branch_restrictions_post(_S, _Args, ok) ->
 get_wz_branch_reviewers(Key, Slug) ->
   bitbucket:get_wz_branch_reviewers(Key, Slug).
 
+get_wz_branch_reviewers_args(#{is_wz_supported := false}) ->
+  true;
 get_wz_branch_reviewers_args(S) ->
   [maps:get(project_key, S), maps:get(repo_slug, S)].
 
@@ -348,7 +350,8 @@ get_wz_branch_reviewers_next(S, _R, [_Key, _Slug]) ->
   S.
 
 get_wz_branch_reviewers_pre(S) ->
-  maps:is_key(wz_branch_reviewers, S).
+  maps:is_key(wz_branch_reviewers, S) andalso
+    maps:get(is_wz_supported, S, false).
 
 get_wz_branch_reviewers_post(S, _Args, {ok, Reviewers}) ->
   ?assertEqual(lists:sort(Reviewers), lists:sort(maps:get(wz_branch_reviewers, S))),
@@ -360,11 +363,16 @@ get_wz_branch_reviewers_post(S, _Args, {ok, Reviewers}) ->
 set_wz_branch_reviewers(Key, Slug, Reviewers) ->
   bitbucket:set_wz_branch_reviewers(Key, Slug, Reviewers).
 
+set_wz_branch_reviewers_args(#{is_wz_supported := false}) ->
+  true;
 set_wz_branch_reviewers_args(S) ->
   [ maps:get(project_key, S)
   , maps:get(repo_slug, S)
   , bec_proper_gen:wz_branch_reviewers()
   ].
+
+set_wz_branch_reviewers_pre(S) ->
+  maps:get(is_wz_supported, S, false).
 
 set_wz_branch_reviewers_next(S, _R, [_Key, _Slug, Reviewers]) ->
   maps:put(wz_branch_reviewers, Reviewers, S).
@@ -422,6 +430,15 @@ prop_api() ->
 %%==============================================================================
 %% Setup
 %%==============================================================================
+
+is_wz_supported() ->
+  try
+    ok = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
+    true
+  catch _:_ ->
+      false
+  end.
+
 setup() ->
   application:load(bec),
   %% Starting from OTP 21, error logger is not started by default any longer.
@@ -435,7 +452,9 @@ setup() ->
   application:set_env(bec, bitbucket_username, Username),
   application:set_env(bec, bitbucket_password, Password),
   {ok, Started} = application:ensure_all_started(bec),
-  #{started => Started}.
+  #{started => Started,
+    wz_supported => is_wz_supported()}.
+
 
 %%==============================================================================
 %% Teardown
