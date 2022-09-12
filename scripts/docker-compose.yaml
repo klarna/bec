@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  bitbucket:
+    image: atlassian/bitbucket-server:7.17.1
+    restart: always
+    networks:
+      - bridge
+    ports:
+      - '7990:7990'
+    environment:
+      - 'SETUP_DISPLAYNAME=Bitbucket'
+      - 'SETUP_BASEURL=http://localhost:7990'
+      # Get license here https://developer.atlassian.com/platform/marketplace/timebomb-licenses-for-testing-server-apps/
+      - 'SETUP_LICENSE=AAABrQ0ODAoPeNp9kVFvmzAQx9/9KSztLZIJZIu0RkJqA6yNViAK0G3d+uDApXgjNrKPbPn2dYG0a 6fuwS8+393v//O7vAMa8yN1PerOFrPZYn5GL+OczlzvI0m6/RZ0uisMaON7LgmURF5iwvfgVy3XW pj6nGPDjRFcOqXaE4Pc1M61KEEayI8t9I+DNI6jTbC6uP73wd/FdafLmhsIOYL/yMDcOXM98p95Y yn60wp97PvW769OpFHMRfMWagb6AHoV+svLs5x9LW4+sM+3t1ds6XpfRkw7jwcgEbSPugOSdVtTa tGiUHK4mUwmSZqzT+mGrTdpWAT5Kk1YkUW24AcaLFBFt0eKNdARlUayVBVo2mr1E0qk32vE9sdiO r1XzgvEaTN0MBg67hwaKioV0koY1GLbIdjJwlBUtOwMqr39KYfY1JZZclm+9jLEsmbEAZ4CBJvoI o9Ctvz2CP2GrRHe6irkL6l+S5JFiW8Pm7suSfU9l8LwXkwIB2hUaxPmYPAUm/Q2bP315w5MGXL95 DmEZ839jFEE3SlNedvS6rTCkOjAm25YvOON3fMAVTj4nTAtAhRH4o+fI5MQ7xSh2mtA1bPJrq0WA gIVAIGperR8m2N0fl/GfUUJfQnd+T1aX02kk'
+      - 'SETUP_SYSADMIN_USERNAME=admin'
+      - 'SETUP_SYSADMIN_PASSWORD=admin'
+      - 'SETUP_SYSADMIN_DISPLAYNAME=Admin'
+      - 'SETUP_SYSADMIN_EMAILADDRESS=admin@example.com'
+      - 'SEARCH_ENABLED=false'
+    healthcheck:
+      test: ['CMD', 'bash', '-c', 'curl -s http://localhost:7990/status | grep RUNNING']
+      interval: 5s
+      start_period: 10s
+      retries: 10
+    mem_limit: 4G
+
+networks:
+  bridge:
+    driver: bridge
