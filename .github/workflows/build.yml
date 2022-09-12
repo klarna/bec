@@ -28,7 +28,9 @@ jobs:
     - name: Cache Dialyzer PLTs
       uses: actions/cache@v3
       with:
-        path: ~/.cache/rebar3/rebar3_*_plt
+        path: |
+          ~/.cache/rebar3/rebar3_*_plt
+          _build/**/*_plt
         key: ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.config')) }}
         restore-keys: |
           ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-
