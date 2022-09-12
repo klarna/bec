@@ -53,6 +53,10 @@ jobs:
           ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-
     - name: Compile and run dialyzer
       run: rebar3 do compile,dialyzer,xref
+    - name: Run Gradualizer
+      run: rebar3 gradualizer --use_beams
+      # There are too many gradualizer errors to fix right now
+      continue-on-error: true
     - name: Run tests
       env:
         BITBUCKET_SERVER_URL: http://bitbucket:7990
