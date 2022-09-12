@@ -51,6 +51,17 @@ jobs:
           ${{ runner.os }}-dialyzer-
     - name: Compile
       run: rebar3 as test compile
+    - name: Run Checks
+      run: rebar3 do dialyzer,xref
+    - name: Run EUnit Tests
+      run: rebar3 eunit
+    - name: Run CT Tests
+      run: rebar3 ct
+    - name: Store CT Logs
+      uses: actions/upload-artifact@v1
+      with:
+        name: ct-logs
+        path: _build/test/logs
     - name: Run PropEr Tests
       run: rebar3 proper
       env:
@@ -68,17 +79,6 @@ jobs:
       with:
         name: proper-logs
         path: log/*.log
-    - name: Run Checks
-      run: rebar3 do dialyzer,xref
-    - name: Run EUnit Tests
-      run: rebar3 eunit
-    - name: Run CT Tests
-      run: rebar3 ct
-    - name: Store CT Logs
-      uses: actions/upload-artifact@v1
-      with:
-        name: ct-logs
-        path: _build/test/logs
     - name: Create Cover Reports
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
