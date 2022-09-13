@@ -65,6 +65,7 @@
         , remove_user/1
         , create_branch/3
         , add_user_to_groups/1
+        , install_plugin/2
         ]).
 
 -include("bitbucket.hrl").
@@ -514,6 +515,8 @@ add_user_to_groups(Map) ->
   bitbucket_http:post_request(Url, jsx:encode(Map)).
 
 
+
+
 %%==============================================================================
 %% Internal Functions
 %%==============================================================================
@@ -521,3 +524,52 @@ add_user_to_groups(Map) ->
 format_url(Fmt, Args) ->
   Url = application:get_env(bec, bitbucket_url, "http://localhost:8000"),
   lists:flatten([Url, io_lib:format(Fmt, Args)]).
+
+%% For now
+get_url(Path, Query) ->
+  Username = application:get_env(bec, bitbucket_username, ""),
+  Password = application:get_env(bec, bitbucket_password, ""),
+  Map = uri_string:parse(
+          application:get_env(bec, bitbucket_url, "http://localhost:8000")),
+  uri_string:recompose(
+    maps:merge(Map, #{userinfo => Username ++ ":" ++ Password,
+                      path => Path,
+                      query => Query})).
+
+%% Return the UPM token to use for installing plugins. See
+%% https://developer.atlassian.com/platform/marketplace/registering-apps/
+-spec get_upm_token() -> binary().
+get_upm_token() ->
+  Url = get_url("/rest/plugins/1.0/", "os_authType=basic"),
+  Headers = [{"Accept", "application/vnd.atl.plugins.installed+json"}],
+  Request = {Url, Headers},
+  {ok, Result} = httpc:request(get, Request, [], []),
+  {{_, 200, _}, ResponseHeaders, _Body} = Result,
+  list_to_binary(proplists:get_value("upm-token", ResponseHeaders)).
+
+-spec install_plugin(PluginXmlUrl :: uri_string:uri_string(),
+                     PluginName :: binary()) ->
+        {ok, map()} | {error, map()}.
+install_plugin(PluginXmlUrl, PluginName) ->
+  UpmToken = get_upm_token(),
+  Url = get_url("/rest/plugins/1.0/", "token=" ++ UpmToken),
+  Headers = [{"Accept", "application/json"}],
+  Body = jsx:encode(#{<<"pluginUri">> => PluginXmlUrl,
+                      <<"pluginName">> => PluginName}),
+  Request = {Url,
+             Headers,
+             "application/vnd.atl.plugins.install.uri+json",
+             Body},
+  %% io:format("Request: ~p~n", [Request]),
+  {ok, Result} = httpc:request(post, Request, [], []),
+  %% io:format("Result: ~p~n", [Result]),
+  case Result of
+    {{_, Code, _}, _, _} when Code >= 300 ->
+      {error, Result};
+    {{_, Code, _}, _, ResponseBody} when Code >= 200 ->
+      io:format("~p~n", [jsx:decode(list_to_binary(ResponseBody))]),
+      throw(stop_here)
+  end.
+
+
+  %% TODO wait for plugin to be installed

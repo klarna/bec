@@ -68,6 +68,8 @@ init_bitbucket() ->
   deinit_bitbucket(),
 
   try
+    ok = bitbucket_api:install_plugin(<<"http://tbd">>, <<"MyPlugin">>),
+
     ok = bitbucket:create_project(ProjectKey),
     ok = bitbucket:create_repo(ProjectKey, RepoSlug),
     ok = bitbucket:create_group(TeamA),
