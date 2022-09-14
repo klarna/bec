@@ -3,8 +3,6 @@
 %%==============================================================================
 -module(bitbucket_http).
 
--compile([{parse_transform, lager_transform}]).
-
 %%==============================================================================
 %% Exports
 %%==============================================================================
@@ -14,6 +12,8 @@
         , post_request/2
         , put_request/2
         ]).
+
+-include_lib("kernel/include/logger.hrl").
 
 %%==============================================================================
 %% Types
@@ -71,7 +71,7 @@ put_request(Url, Body) ->
 do_request(Method, Url) ->
   Headers = headers(),
   Request = {Url, Headers},
-  ok      = lager:debug("HTTP Request: (~p) ~p~n", [Method, Url]),
+  ok      = ?LOG_DEBUG("HTTP Request: (~p) ~p~n", [Method, Url]),
   do_http_request(Method, Request).
 
 -spec do_request(method(), url(), body()) -> {ok, map()} | {error, any()}.
@@ -79,7 +79,7 @@ do_request(Method, Url, Body) ->
   Headers = headers(),
   Type    = "application/json",
   Request = {Url, Headers, Type, Body},
-  ok      = lager:debug("HTTP Request: (~p) ~p~n~p~n", [Method, Url, Headers]),
+  ok      = ?LOG_DEBUG("HTTP Request: (~p) ~p~n~p~n", [Method, Url, Headers]),
   do_http_request(Method, Request).
 
 -spec do_http_request(method(), request()) ->
@@ -93,7 +93,7 @@ do_http_request(Method, Request) ->
                                   , {max_sessions, 0}
                                   ]),
   Result      = httpc:request(Method, Request, HTTPOptions, Options),
-  ok          = lager:debug("HTTP Result: ~p~n", [Result]),
+  ok          = ?LOG_DEBUG("HTTP Result: ~p~n", [Result]),
   handle_result(Result).
 
 -spec headers() -> [{string(), string()}].

@@ -7,7 +7,7 @@
         , is_wz_supported/0
         ]).
 
--compile([{parse_transform, lager_transform}]).
+-include_lib("kernel/include/logger.hrl").
 
 cmd(Fmt, Args) ->
   Cmd = lists:flatten(io_lib:format(Fmt, Args)),
@@ -104,16 +104,13 @@ deinit_bitbucket() ->
   catch bitbucket:delete_project(ProjectKey).
 
 init_logging() ->
-  lager:start(),
-  lager:set_loglevel(lager_file_backend, debug),
-  lager:set_loglevel(lager_console_backend, none),
-  ok.
+  ok = logger:update_primary_config(#{level => debug}).
 
 is_wz_supported() ->
   try
     ok = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
     true
   catch _:_ ->
-      lager:error("Workzone plugin is not supported. Corresponding tests will not be run."),
+      ?LOG_ERROR("Workzone plugin is not supported. Corresponding tests will not be run."),
       false
   end.

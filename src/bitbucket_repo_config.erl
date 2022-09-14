@@ -1,6 +1,6 @@
 -module(bitbucket_repo_config).
 
--compile([{parse_transform, lager_transform}]).
+-include_lib("kernel/include/logger.hrl").
 
 -export([ verify/1
         , verify/2
@@ -32,7 +32,7 @@ verify(Path, Options) ->
              end || Var <- Vars],
       lists:all(fun(true) -> true; (false) -> false end, All);
     Ext ->
-      lager:error("File extension not recognized (~p).~n", [Ext]),
+      ?LOG_ERROR("File extension not recognized (~p).~n", [Ext]),
       false
   end.
 
@@ -106,23 +106,23 @@ do_verify(Project, Repo, [{K, V}|Tail], Enforce, AbortOnError, SoFar) ->
   case {Result, Enforce, AbortOnError} of
     {true, _, _} ->
       %% Verification passed. Nothing to enforce, proceeding
-      ok = lager:info("[~s/~s] Check OK ~n", [Project, Repo]),
+      ok = ?LOG_INFO("[~s/~s] Check OK ~n", [Project, Repo]),
       do_verify(Project, Repo, Tail, Enforce, AbortOnError, SoFar);
     {false, true, false} ->
       %% Verification failed. If enforce == true, abort_on_error is false
       %% by definition. Record the fact that verification failed by
       %% updating the SoFar flag.
-      ok = lager:warning("[~s/~s] Check FAILED~n", [Project, Repo]),
+      ok = ?LOG_WARNING("[~s/~s] Check FAILED~n", [Project, Repo]),
       ok = do_enforce(Project, Repo, K, V),
       do_verify(Project, Repo, Tail, Enforce, AbortOnError, false);
     {false, false, true} ->
       %% Verification failed. abort_on_error is true, so stopping.
-      ok = lager:error("[~s/~s] Check FAILED~n", [Project, Repo]),
+      ok = ?LOG_ERROR("[~s/~s] Check FAILED~n", [Project, Repo]),
       false;
     {false, false, false} ->
       %% Verification failed. abort_on_error is false, so record the
       %% fact using the SoFar flag and keep going.
-      ok = lager:warning("[~s/~s] Check FAILED~n", [Project, Repo]),
+      ok = ?LOG_WARNING("[~s/~s] Check FAILED~n", [Project, Repo]),
       do_verify(Project, Repo, Tail, Enforce, AbortOnError, false)
   end.
 
@@ -158,23 +158,23 @@ getter(<<"webhooks">>) ->
 
 -spec do_verify(binary(), binary(), binary(), any()) -> boolean().
 do_verify(ProjectKey, RepoSlug, Key, Expected) ->
-  ok  = lager:info("[~s/~s] Checking ~p ~n", [ProjectKey, RepoSlug, Key]),
+  ok  = ?LOG_INFO("[~s/~s] Checking ~p ~n", [ProjectKey, RepoSlug, Key]),
   Get = getter(Key),
   Adapted = adapt(Key, Expected),
   {ok, Actual} = Get(ProjectKey, RepoSlug),
-  ok = lager:debug( "[~s/~s] Actual   ==> ~p ~n"
+  ok = ?LOG_DEBUG( "[~s/~s] Actual   ==> ~p ~n"
                   , [ProjectKey, RepoSlug, Actual]),
-  ok = lager:debug( "[~s/~s] Expected ==> ~p ~n"
-                  , [ProjectKey, RepoSlug, Adapted]),
+  ok = ?LOG_DEBUG( "[~s/~s] Expected ==> ~p ~n"
+                 , [ProjectKey, RepoSlug, Adapted]),
   case equals(Key, Actual, Adapted) of
     true ->
       true;
     false ->
       %% Not showing details here since they may contain secrets.
       %% They were debug-logged above.
-      ok = lager:error( "[~s/~s] Actual does not match Expected"
-                        " (increase verbosity to see details)~n"
-                      , [ProjectKey, RepoSlug]),
+      ok = ?LOG_ERROR("[~s/~s] Actual does not match Expected"
+                      " (increase verbosity to see details)~n"
+                     , [ProjectKey, RepoSlug]),
       false
   end.
 
@@ -251,11 +251,11 @@ adapt(_Key, Value) ->
 
 -spec do_enforce(binary(), binary(), binary(), any()) -> ok.
 do_enforce(ProjectKey, RepoSlug, Key, Expected) ->
-  ok = lager:info("[~s/~s] Enforcing ~p ~n", [ProjectKey, RepoSlug, Key]),
+  ok = ?LOG_INFO("[~s/~s] Enforcing ~p ~n", [ProjectKey, RepoSlug, Key]),
   Set = setter(Key),
   Adapted = adapt(Key, Expected),
-  ok = lager:info( "[~s/~s] Setting value to ~p ~n"
-                 , [ProjectKey, RepoSlug, Adapted]),
+  ok = ?LOG_INFO("[~s/~s] Setting value to ~p ~n",
+                 [ProjectKey, RepoSlug, Adapted]),
   ok = Set(ProjectKey, RepoSlug, Adapted).
 
 -spec remove_global_config(map()) -> map().

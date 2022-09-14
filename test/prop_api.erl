@@ -430,10 +430,7 @@ prop_api() ->
 %%==============================================================================
 
 setup() ->
-  application:load(bec),
-  %% Starting from OTP 21, error logger is not started by default any longer.
-  %% See: https://github.com/erlang-lager/lager/issues/452
-  ok = application:set_env(lager, error_logger_redirect, false),
+  bec_test_utils:init_logging(),
   application:load(bec),
   Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
   Username      = os:getenv("BB_STAGING_USERNAME", ""),
@@ -443,7 +440,6 @@ setup() ->
   application:set_env(bec, bitbucket_password, Password),
   {ok, Started} = application:ensure_all_started(bec),
   bec_test_utils:init_bitbucket(),
-  bec_test_utils:init_logging(),
   #{started => Started,
     wz_supported => bec_test_utils:is_wz_supported()}.
 
