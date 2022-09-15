@@ -120,6 +120,9 @@ available_hooks() ->
   InstalledHooks = lists:map(fun(Hook) -> maps:get(key, Hook) end, Hooks),
   [H || H <- supported_hooks(), lists:member(H, InstalledHooks)].
 
+unavailable_hooks() ->
+  supported_hooks() -- available_hooks().
+
 hook_id() ->
   oneof([ <<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>
         , <<"de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook">>

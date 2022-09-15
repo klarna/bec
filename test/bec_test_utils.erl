@@ -61,6 +61,18 @@ init_bitbucket() ->
   %% has expired.
   ok = bitbucket:validate_license(),
 
+  case is_wz_supported() of
+    false ->
+      io:format("Workzone plugin is not supported. Corresponding tests will not be run.~n");
+    true ->
+      ok
+  end,
+
+  lists:foreach(
+    fun(Hook) ->
+        io:format("Hook '~s' is not available and will not be tested.~n", [Hook])
+    end, bec_proper_gen:unavailable_hooks()),
+
 
   UserA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a")),
   UserEmailA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a") ++ "@email.com"),
