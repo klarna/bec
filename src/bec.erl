@@ -1,8 +1,10 @@
 -module(bec).
 
--compile([{parse_transform, lager_transform}]).
-
 -export([ main/1 ]).
+
+-include_lib("kernel/include/logger.hrl").
+
+-type verbose_levels() :: error | info | warning | debug.
 
 -spec main([string()]) -> ok.
 main([]) ->
@@ -28,11 +30,11 @@ main(Args) ->
 
 -spec print_error_and_exit(Fmt :: io:format(), Args :: [term()]) -> no_return().
 print_error_and_exit(Fmt, Args) ->
-    lager:error(Fmt, Args),
+    ?LOG_ERROR(Fmt, Args),
     flush_and_exit(1).
 
 flush_and_exit(Code) ->
-    application:stop(lager),
+    logger_std_h:filesync(default),
     erlang:halt(Code).
 
 do_main(Options) ->
@@ -87,16 +89,11 @@ usage() ->
 usage(Specs) ->
     getopt:usage(Specs, escript:script_name()).
 
+-spec set_logging(Verbosity :: verbose_levels()) -> ok.
 set_logging(Verbosity) ->
-    ok = application:load(lager),
-    %% Starting from OTP 21, error logger is not started by default any longer.
-    %% See: https://github.com/erlang-lager/lager/issues/452
-    ok = application:set_env(lager, error_logger_redirect, false),
-    ok = application:set_env(lager, handlers, [ { lager_console_backend
-                                                , [{level, Verbosity}] }
-                                              ]),
-    ok.
+    ok = logger:update_primary_config(#{level => Verbosity}).
 
+-spec verbosity_level(I :: non_neg_integer()) -> verbose_levels().
 verbosity_level(0) ->
     error;
 verbosity_level(1) ->

@@ -7,8 +7,6 @@
                  , stdlib
                  , ssl
                  , inets
-                 , goldrush
-                 , lager
                  , yamerl
                  , getopt
                  , mustache

@@ -2,13 +2,13 @@
 
 -export([ load/1 ]).
 
--compile([{parse_transform, lager_transform}]).
+-include_lib("kernel/include/logger.hrl").
 
 -spec load(string()) -> ok | {error, term()}.
 load(Path) ->
     case file:consult(Path) of
         {ok, Config} ->
-            lager:info("Reading config file ~p.~n", [Path]),
+            ?LOG_INFO("Reading config file ~p.~n", [Path]),
             [ok = application:set_env(bec, K, V) || {K, V} <- Config],
             ok;
         {error, Reason} ->

@@ -3,7 +3,7 @@
 %%==============================================================================
 -module(bitbucket).
 
--compile([{parse_transform, lager_transform}]).
+-include_lib("kernel/include/logger.hrl").
 
 %%==============================================================================
 %% Exports
@@ -115,8 +115,8 @@ set_ssh_keys(ProjectKey, RepoSlug, Keys) ->
 get_default_branch(ProjectKey, RepoSlug) ->
   case bitbucket_api:get_default_branch(ProjectKey, RepoSlug) of
     {ok, Response} when Response =:= #{} ->
-      lager:error("Default branch not found. This might be because you haven't "
-                  "pushed any commits to the repo yet."),
+      ?LOG_ERROR("Default branch not found. This might be because you haven't "
+                 "pushed any commits to the repo yet."),
       throw(default_branch_not_found);
     {ok, Response} ->
       Branch = bec_branch_t:from_map(Response),
