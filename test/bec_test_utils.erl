@@ -11,8 +11,9 @@
 
 cmd(Fmt, Args) ->
   Cmd = lists:flatten(io_lib:format(Fmt, Args)),
-  %% TODO log command output somewhere
-  os:cmd(Cmd),
+  ?LOG_DEBUG("Executing shell command: ~s~n", [Cmd]),
+  Output = os:cmd(Cmd),
+  ?LOG_DEBUG("Shell command output: ~s~n", [Output]),
   ok.
 
 init_repo() ->
