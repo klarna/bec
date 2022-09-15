@@ -39,9 +39,9 @@ all() ->
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
   {ok, Started} = application:ensure_all_started(bec),
-  Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
-  Username      = os:getenv("BB_STAGING_USERNAME", ""),
-  Password      = os:getenv("BB_STAGING_PASSWORD", ""),
+  Url           = bec_test_utils:bitbucket_server_url(),
+  Username      = bec_test_utils:bitbucket_username(),
+  Password      = bec_test_utils:bitbucket_password(),
   [ {started,  Started}
   , {url,      Url}
   , {username, Username}

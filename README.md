@@ -167,6 +167,7 @@ repo:
   - best_cat_pics
 ```
 
+
 ## Known Limitations
 
 * Basic HTTP Authentication is the only authentication mechanism
@@ -178,14 +179,49 @@ repo:
 The full test suite (including PropEr tests) needs a Bitbucket Server
 instance to run.  Running "rebar3 proper" will check if there is one
 already running on http://localhost:7990 and start one using a docker
-container if no one is found.
-
-This functionality requires
+container if no one is found. This functionality requires
 [docker-compose](https://docs.docker.com/compose/).
+
+BEC has support for some hooks (see
+`bec_proper_gen:supported_hooks/0`), as well as for the Workzone
+plugin. These hooks are not available in the default Bitbucket Server
+docker image used if you only use "rebar3 proper".
+
+If you have a Bitbucket Server where these plugins/hooks are supported,
+you can run the PropEr tests against that server instead. To do this,
+set these environment variables:
+
+* `BITBUCKET_SERVER_URL`: The Bitbucket Server you want to use.
+* `BITBUCKET_USERNAME`: The username to use. Only http
+  username/password authentication is supported for now.
+* `BITBUCKET_PASSWORD`: The password to use.
+
+The following environment variables can be used to override which
+repo/users/groups will be used for testing. If these do not exist (or
+not specified), the test setup will attempt to create them. If
+`$BITBUCKET_USERNAME` does not have sufficient privileges to create
+repos/users/groups, you can specify pre-created users/groups here.
+
+* `BITBUCKET_PROJECT_KEY`: The Bitbucket project to use.
+* `BITBUCKET_REPO_SLUG`: The Bitbucket repository to use.
+* `BITBUCKET_TEST_USERS`: A comma-separated list of test users.
+* `BITBUCKET_TEST_GROUPS`: A comma-separated list of test groups.
+
+Note: the test users and test groups should be the same length, and
+each user should be a member of the corresponding group, i.e.
+
+```
+BITBUCKET_TEST_USERS=user.a,user.b
+BITBUCKET_TEST_GROUPS=group.a,group.b
+```
+
+where `user.a` is a member of `group.a` and `user.b` is a member of
+`group.b`.
 
 ## Author
 
-* Roberto Aloi
+Roberto Aloi was the original author of BEC. Lots of people have
+contributed to its development since then.
 
 ## How to contribute
 

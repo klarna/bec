@@ -70,6 +70,7 @@
         , create_branch/4
         , add_user_to_groups/2
         , validate_license/0
+        , branch_exists/3
         ]).
 
 %%==============================================================================
@@ -659,3 +660,11 @@ validate_license() ->
           end
       end
   end.
+
+-spec branch_exists(ProjectKey :: project_key(),
+                    RepoSlug :: repo_slug(),
+                    Branch :: branch_id()) -> boolean().
+branch_exists(ProjectKey, RepoSlug, Branch) ->
+  {ok, #{<<"size">> := Size}} =
+    bitbucket_api:find_branches(ProjectKey, RepoSlug, Branch),
+  Size >= 1.

@@ -3,8 +3,6 @@
 %%==============================================================================
 -module(bitbucket_api).
 
--include_lib("kernel/include/logger.hrl").
-
 %%==============================================================================
 %% Exports
 %%==============================================================================
@@ -68,6 +66,7 @@
         , create_branch/3
         , add_user_to_groups/1
         , validate_license/0
+        , find_branches/3
         ]).
 
 -include("bitbucket.hrl").
@@ -520,6 +519,16 @@ add_user_to_groups(Map) ->
 validate_license() ->
   Fmt   = "/rest/api/~s/admin/license",
   Args  = [?API_VSN],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:get_request(Url).
+
+-spec find_branches(ProjectKey :: project_key(),
+                    RepoSlug :: repo_slug(),
+                    Filter :: binary()) ->
+        {ok, map()} | {error, map()}.
+find_branches(ProjectKey, RepoSlug, Filter) ->
+  Fmt   = "/rest/api/~s/projects/~s/repos/~s/branches?filterText=~s",
+  Args  = [?API_VSN, ProjectKey, RepoSlug, Filter],
   Url   = format_url(Fmt, Args),
   bitbucket_http:get_request(Url).
 

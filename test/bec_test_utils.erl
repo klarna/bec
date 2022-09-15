@@ -2,65 +2,89 @@
 -module(bec_test_utils).
 
 -export([ init_bitbucket/0
-        , deinit_bitbucket/0
         , init_logging/0
         , is_wz_supported/0
+
+        , bitbucket_server_url/0
+        , bitbucket_project_key/0
+        , bitbucket_repo_slug/0
+        , bitbucket_test_users/0
+        , bitbucket_test_groups/0
+        , bitbucket_username/0
+        , bitbucket_password/0
+        , bitbucket_set_credentials/0
         ]).
 
 -include_lib("kernel/include/logger.hrl").
 
+-spec cmd(Fmt :: io:format(), Args :: [any()]) -> string().
 cmd(Fmt, Args) ->
   Cmd = lists:flatten(io_lib:format(Fmt, Args)),
   ?LOG_DEBUG("Executing shell command: ~s~n", [Cmd]),
   Output = os:cmd(Cmd),
   ?LOG_DEBUG("Shell command output: ~s~n", [Output]),
-  ok.
+  Output.
 
 init_repo() ->
-  Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
-  Username      = os:getenv("BB_STAGING_USERNAME", ""),
-  Password      = os:getenv("BB_STAGING_PASSWORD", ""),
-
-  Map = uri_string:parse(Url),
-
-  ProjectKey = os:getenv("BB_STAGING_PROJECT_KEY", ""),
-  RepoSlug = os:getenv("BB_STAGING_REPO_SLUG", ""),
-
-  %% TODO see if we can get this url through the REST api instead of
-  %% reconstructing it from the Bitbucket Server url.
-  GitUrl = io_lib:format("~s://~s:~s@~s:~w/scm/~s/~s.git",
-                         [maps:get(scheme, Map),
-                          Username,
-                          Password,
-                          maps:get(host, Map),
-                          maps:get(port, Map),
-                          ProjectKey,
-                          RepoSlug]),
-
+  ProjectKey = bitbucket_project_key(),
+  RepoSlug = bitbucket_repo_slug(),
+  {ok, #{clone_http := GitUrl}} = bitbucket:get_repo(ProjectKey, RepoSlug),
+  Map = uri_string:parse(GitUrl),
+  GitUrlWithAuth =
+    uri_string:recompose(maps:merge(#{userinfo =>
+                                        bitbucket_username() ++ ":" ++
+                                                   bitbucket_password()},
+                                    Map)),
   LocalRepo = "/tmp/bec-test" ++ integer_to_list(rand:uniform(1 bsl 127)),
-  ok = cmd("mkdir -p ~s && cd ~s && "
-           "git init . && "
-           "git config user.email $USER@$HOSTNAME && "
-           "git config user.name Anonymous && "
-           "echo >README.md && git add README.md && "
-           "git commit -a -m 'First commit' && "
-           "git remote add origin ~s && git fetch && "
-           "git push origin master && "
-           "rm -rf ~s",
-           [LocalRepo, LocalRepo, GitUrl, LocalRepo]),
 
-  ok = bitbucket:set_default_branch(ProjectKey, RepoSlug, <<"master">>),
-  ok = bitbucket:create_branch(ProjectKey, RepoSlug, <<"feature">>, <<"master">>).
+  case bitbucket:branch_exists(ProjectKey, RepoSlug, <<"master">>) of
+    true -> ok;
+    false ->
+      Output = cmd("mkdir -p ~s && cd ~s && "
+                   "git init . && "
+                   "git config user.email $USER@$HOSTNAME && "
+                   "git config user.name Anonymous && "
+                   "echo >README.md && git add README.md && "
+                   "git commit -a -m 'First commit' && "
+                   "git remote add origin ~s && git fetch && "
+                   "git push origin master && "
+                   "rm -rf ~s && echo SUCCESS",
+                   [LocalRepo, LocalRepo, GitUrlWithAuth, LocalRepo]),
+      case string:find(Output, "SUCCESS", trailing) of
+        nomatch ->
+          throw({could_not_initialize_git_repo, Output});
+        _ ->
+          ok = bitbucket:set_default_branch(ProjectKey, RepoSlug, <<"master">>)
+      end
+  end,
+  maybe_create_branch(ProjectKey, RepoSlug, <<"feature">>, <<"master">>).
+
 
 init_bitbucket() ->
-  ProjectKey = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
-  RepoSlug = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
-  TeamA = list_to_binary(os:getenv("BB_STAGING_TEAM_A", "team.a")),
-  TeamB = list_to_binary(os:getenv("BB_STAGING_TEAM_B", "team.b")),
+  bitbucket_set_credentials(),
+
+  ProjectKey = bitbucket_project_key(),
+  RepoSlug = bitbucket_repo_slug(),
 
   %% This is just to get a better error message in case the license
   %% has expired.
   ok = bitbucket:validate_license(),
+
+  maybe_create_project(ProjectKey),
+  maybe_create_repo(ProjectKey, RepoSlug),
+
+  lists:foreach(fun maybe_create_group/1, bitbucket_test_groups()),
+  lists:foreach(fun({User, Group}) ->
+                    UserEmail = <<User/binary, "@email.com">>,
+                    UserDisplayName = <<User/binary, " (Name)">>,
+                    Password = <<"password">>,
+                    maybe_create_user_with_group(User,
+                                                 UserEmail,
+                                                 UserDisplayName,
+                                                 Password,
+                                                 Group)
+                end, lists:zip(bitbucket_test_users(),
+                               bitbucket_test_groups())),
 
   case is_wz_supported() of
     false ->
@@ -74,52 +98,43 @@ init_bitbucket() ->
         io:format("Hook '~s' is not available and will not be tested.~n", [Hook])
     end, bec_proper_gen:unavailable_hooks()),
 
+  init_repo().
 
-  UserA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a")),
-  UserEmailA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a") ++ "@email.com"),
-  UserDisplayNameA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a") ++ " (Name)"),
-
-  UserB = list_to_binary(os:getenv("BB_STAGING_USER_B", "user.b")),
-  UserEmailB = list_to_binary(os:getenv("BB_STAGING_USER_B", "user.b") ++ "@email.com"),
-  UserDisplayNameB = list_to_binary(os:getenv("BB_STAGING_USER_B", "user.b") ++ " (Name)"),
-
-  deinit_bitbucket(),
-
+maybe_create_project(ProjectKey) ->
   try
-    ok = bitbucket:create_project(ProjectKey),
-    ok = bitbucket:create_repo(ProjectKey, RepoSlug),
-    ok = bitbucket:create_group(TeamA),
-    ok = bitbucket:create_group(TeamB),
-    ok = bitbucket:create_user(UserA, UserEmailA, UserDisplayNameA, <<"password">>),
-    ok = bitbucket:create_user(UserB, UserEmailB, UserDisplayNameB, <<"password">>),
-    ok = bitbucket:add_user_to_groups(UserA, [TeamA]),
-    ok = bitbucket:add_user_to_groups(UserB, [TeamB]),
-    init_repo()
-  catch C:T:St ->
-      %% If the setup function fails, the teardown function is not
-      %% executed and we risk leaving a running bitbucket instance in a
-      %% inconsistent state.
-      deinit_bitbucket(),
-      io:format("Caught exception in setup:~n~p~n", [{C,T,St}]),
-      throw(T)
+    ok = bitbucket:create_project(ProjectKey)
+  catch error:E ->
+      ?LOG_DEBUG("Ignoring: ~p", [E])
   end.
 
-deinit_bitbucket() ->
-  ProjectKey = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
-  RepoSlug = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
-  TeamA = list_to_binary(os:getenv("BB_STAGING_TEAM_A", "team.a")),
-  TeamB = list_to_binary(os:getenv("BB_STAGING_TEAM_B", "team.b")),
-  UserA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a")),
-  UserB = list_to_binary(os:getenv("BB_STAGING_USER_B", "user.b")),
+maybe_create_repo(ProjectKey, RepoSlug) ->
+  try
+    ok = bitbucket:create_repo(ProjectKey, RepoSlug)
+  catch error:E ->
+      ?LOG_DEBUG("Ignoring: ~p", [E])
+  end.
 
-  %% Try as best as possible to cleanup the bitbucket instance, and
-  %% don't fail if e.g. some user doesn't exist.
-  catch bitbucket:remove_user(UserA),
-  catch bitbucket:remove_user(UserB),
-  catch bitbucket:remove_group(TeamA),
-  catch bitbucket:remove_group(TeamB),
-  catch bitbucket:delete_repo(ProjectKey, RepoSlug),
-  catch bitbucket:delete_project(ProjectKey).
+maybe_create_group(Group) ->
+  try
+    ok = bitbucket:create_group(Group)
+  catch error:E ->
+      ?LOG_DEBUG("Ignoring: ~p", [E])
+  end.
+
+maybe_create_user_with_group(User, Email, DisplayName, Password, Group) ->
+  try
+    bitbucket:create_user(User, Email, DisplayName, Password),
+    bitbucket:add_user_to_groups(User, Group)
+  catch error:E ->
+      ?LOG_DEBUG("Ignoring: ~p", [E])
+  end.
+
+maybe_create_branch(ProjectKey, RepoSlug, BranchName, StartPoint) ->
+  try
+    bitbucket:create_branch(ProjectKey, RepoSlug, BranchName, StartPoint)
+  catch error:E ->
+      ?LOG_DEBUG("Ignoring: ~p", [E])
+  end.
 
 init_logging() ->
   ok = logger:set_primary_config(level, all),
@@ -145,9 +160,57 @@ maybe_add_file_handler() ->
 
 is_wz_supported() ->
   try
-    ok = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
+    {ok, _} = bitbucket:get_wz_branch_reviewers(<<"TOOLS">>, <<"bec-test">>),
     true
   catch _:_ ->
       ?LOG_ERROR("Workzone plugin is not supported. Corresponding tests will not be run."),
       false
   end.
+
+-spec bitbucket_server_url() -> binary().
+bitbucket_server_url() ->
+  %% Match this with the URL set up by the pre-hook, so that we can
+  %% run "rebar3 proper" without having to set BITBUCKET_SERVER_URL
+  %% explicitly.
+  os:getenv("BITBUCKET_SERVER_URL", "http://localhost:7990").
+
+-spec bitbucket_username() -> string().
+bitbucket_username() ->
+  os:getenv("BITBUCKET_USERNAME", "admin").
+
+-spec bitbucket_password() -> string().
+bitbucket_password() ->
+  os:getenv("BITBUCKET_PASSWORD", "admin").
+
+-spec bitbucket_project_key() -> binary().
+bitbucket_project_key() ->
+  list_to_binary(os:getenv("BITBUCKET_PROJECT_KEY", "TOOLS")).
+
+-spec bitbucket_repo_slug() -> binary().
+bitbucket_repo_slug() ->
+  list_to_binary(os:getenv("BITBUCKET_REPO_SLUG", "bec")).
+
+-spec bitbucket_test_users() -> [binary()].
+bitbucket_test_users() ->
+  binary:split(list_to_binary(
+                 os:getenv("BITBUCKET_TEST_USERS",
+                           "user.a,user.b")),
+               <<",">>, [global]).
+
+-spec bitbucket_test_groups() -> [binary()].
+bitbucket_test_groups() ->
+  binary:split(list_to_binary(
+                 os:getenv("BITBUCKET_TEST_GROUPS",
+                           "group.a,group.b")),
+               <<",">>, [global]).
+
+%% Write the credentials received from os:getenv() through the
+%% functions above into the application environment so that e.g. code
+%% in bitbucket_http can pick it up just as if the user had specified
+%% "-c ..." on the command line.
+-spec bitbucket_set_credentials() -> ok.
+bitbucket_set_credentials() ->
+  application:set_env(bec, bitbucket_url,      bitbucket_server_url()),
+  application:set_env(bec, bitbucket_username, bitbucket_username()),
+  application:set_env(bec, bitbucket_password, bitbucket_password()),
+  ok.
