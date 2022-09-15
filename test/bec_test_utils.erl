@@ -57,6 +57,11 @@ init_bitbucket() ->
   TeamA = list_to_binary(os:getenv("BB_STAGING_TEAM_A", "team.a")),
   TeamB = list_to_binary(os:getenv("BB_STAGING_TEAM_B", "team.b")),
 
+  %% This is just to get a better error message in case the license
+  %% has expired.
+  ok = bitbucket:validate_license(),
+
+
   UserA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a")),
   UserEmailA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a") ++ "@email.com"),
   UserDisplayNameA = list_to_binary(os:getenv("BB_STAGING_USER_A", "user.a") ++ " (Name)"),

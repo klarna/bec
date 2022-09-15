@@ -69,6 +69,7 @@
         , remove_user/1
         , create_branch/4
         , add_user_to_groups/2
+        , validate_license/0
         ]).
 
 %%==============================================================================
@@ -636,3 +637,25 @@ add_user_to_groups(User, Groups) ->
   {ok, _} = bitbucket_api:add_user_to_groups(#{<<"user">> => User,
                                                <<"groups">> => Groups}),
   ok.
+
+-spec validate_license() -> ok.
+validate_license() ->
+  Result = bitbucket_api:validate_license(),
+  case Result of
+    {error, _} ->
+      %% We weren't allowed to look at the license. Assume that the
+      %% license is ok, we're just not allowed to look at it.
+      ok;
+    {ok, Body} ->
+      Status = maps:get(<<"status">>, Body),
+      case maps:get(<<"validityMessage">>, Status, undefined) of
+        undefined -> ok;
+        ValidityMsg ->
+          case ValidityMsg of
+            <<"Your license has expired.">> ->
+              throw(license_expired);
+            _ ->
+              ok
+          end
+      end
+  end.

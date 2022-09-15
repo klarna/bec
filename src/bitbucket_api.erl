@@ -3,6 +3,8 @@
 %%==============================================================================
 -module(bitbucket_api).
 
+-include_lib("kernel/include/logger.hrl").
+
 %%==============================================================================
 %% Exports
 %%==============================================================================
@@ -65,6 +67,7 @@
         , remove_user/1
         , create_branch/3
         , add_user_to_groups/1
+        , validate_license/0
         ]).
 
 -include("bitbucket.hrl").
@@ -513,6 +516,12 @@ add_user_to_groups(Map) ->
   Url   = format_url(Fmt, Args),
   bitbucket_http:post_request(Url, jsx:encode(Map)).
 
+-spec validate_license() -> {ok, map()} | {error, map()}.
+validate_license() ->
+  Fmt   = "/rest/api/~s/admin/license",
+  Args  = [?API_VSN],
+  Url   = format_url(Fmt, Args),
+  bitbucket_http:get_request(Url).
 
 %%==============================================================================
 %% Internal Functions
