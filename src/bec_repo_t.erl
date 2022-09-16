@@ -13,7 +13,10 @@
 %%==============================================================================
 %% Types
 %%==============================================================================
--type repo() :: #{ public => boolean() }.
+-type repo() :: #{ public => boolean(),
+                   clone_ssh => binary(),
+                   clone_http => binary()
+                 }.
 
 %%==============================================================================
 %% Export Types
@@ -25,9 +28,21 @@
 %% API
 %%==============================================================================
 -spec from_map(map()) -> repo().
-from_map(#{ <<"public">> := Public }) ->
-  #{ public => Public }.
+from_map(#{ <<"public">> := Public
+          , <<"links">> := Links
+          }) ->
+  CloneMethods =
+    lists:foldl(fun(#{<<"href">> := Href,
+                      <<"name">> := Protocol}, Acc) ->
+                    maps:put(Protocol, Href, Acc)
+                end, #{}, maps:get(<<"clone">>, Links)),
+
+  #{ public => Public,
+     clone_ssh => maps:get(<<"ssh">>, CloneMethods),
+     clone_http => maps:get(<<"http">>, CloneMethods)
+   }.
 
 -spec to_map(repo()) -> map().
-to_map(#{ public := Public }) ->
-  #{ <<"public">> => Public }.
+to_map(#{ public := Public}) ->
+  %% No support for setting clone methods yet
+  #{<<"public">> => Public}.

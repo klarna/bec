@@ -23,8 +23,8 @@
 %% Initial State
 %%==============================================================================
 initial_state() ->
-  ProjectKey  = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
-  RepoSlug    = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
+  ProjectKey  = bec_test_utils:bitbucket_project_key(),
+  RepoSlug    = bec_test_utils:bitbucket_repo_slug(),
   {ok, Hooks} = bitbucket:get_hooks(ProjectKey, RepoSlug),
   #{ project_key      => ProjectKey
    , repo_slug        => RepoSlug
@@ -432,23 +432,16 @@ prop_api() ->
 setup() ->
   bec_test_utils:init_logging(),
   application:load(bec),
-  Url           = os:getenv("BB_STAGING_URL", "http://localhost"),
-  Username      = os:getenv("BB_STAGING_USERNAME", ""),
-  Password      = os:getenv("BB_STAGING_PASSWORD", ""),
-  application:set_env(bec, bitbucket_url,      Url),
-  application:set_env(bec, bitbucket_username, Username),
-  application:set_env(bec, bitbucket_password, Password),
+  bec_test_utils:bitbucket_set_credentials(),
   {ok, Started} = application:ensure_all_started(bec),
   bec_test_utils:init_bitbucket(),
   #{started => Started,
     wz_supported => bec_test_utils:is_wz_supported()}.
 
-
 %%==============================================================================
 %% Teardown
 %%==============================================================================
 teardown(#{started := Started}) ->
-  bec_test_utils:deinit_bitbucket(),
   [application:stop(App) || App <- Started],
   ok.
 

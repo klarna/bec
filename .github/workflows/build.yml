@@ -51,36 +51,20 @@ jobs:
         key: ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-${{ hashFiles('rebar.config') }}
         restore-keys: |
           ${{ runner.os }}-otp${{ matrix.otp-version }}-dialyzer-
-    - name: Compile
-      run: rebar3 as test compile
-    - name: Run Checks
-      run: rebar3 do dialyzer,xref
-    - name: Run EUnit Tests
-      run: rebar3 eunit
-    - name: Run CT Tests
-      run: rebar3 ct
-    - name: Store CT Logs
-      uses: actions/upload-artifact@v1
-      with:
-        name: ct-logs
-        path: _build/test/logs
-    - name: Run PropEr Tests
-      run: rebar3 proper
+    - name: Compile and run dialyzer
+      run: rebar3 do compile,dialyzer,xref
+    - name: Run tests
       env:
-        BB_STAGING_URL: http://bitbucket:7990
-        BB_STAGING_PROJECT_KEY: TOOLS
-        BB_STAGING_REPO_SLUG: bec-test
-        BB_STAGING_TEAM_A: team.a
-        BB_STAGING_TEAM_B: team.b
-        BB_STAGING_USER_A: user.a
-        BB_STAGING_USER_B: user.b
-        BB_STAGING_USERNAME: admin
-        BB_STAGING_PASSWORD: admin
-    - name: Store logs from PropEr runs
+        BITBUCKET_SERVER_URL: http://bitbucket:7990
+      run: rebar3 as test eunit,ct,proper,cover,covertool generate
+    - name: Store test logs
       uses: actions/upload-artifact@v3
+      if: always()
       with:
-        name: proper-logs
-        path: log/*.log
+        name: logs
+        path: |
+          _build/test/logs
+          log/*.log
     - name: Create Cover Reports
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

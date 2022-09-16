@@ -20,7 +20,7 @@ branch() ->
 %% User
 %%==============================================================================
 username() ->
-  oneof([user_a(), user_b()]).
+  oneof(bec_test_utils:bitbucket_test_users()).
 
 usernames() ->
   unique_list(username()).
@@ -29,7 +29,7 @@ usernames() ->
 %% Group
 %%==============================================================================
 groupname() ->
-  oneof([team_a(), team_b()]).
+  oneof(bec_test_utils:bitbucket_test_groups()).
 
 group() ->
   ?LET(GroupName, groupname(), #{groupname => GroupName}).
@@ -114,11 +114,14 @@ supported_hooks() ->
   ].
 
 available_hooks() ->
-  ProjectKey  = list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")),
-  RepoSlug    = list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")),
+  ProjectKey  = bec_test_utils:bitbucket_project_key(),
+  RepoSlug    = bec_test_utils:bitbucket_repo_slug(),
   {ok, Hooks} = bitbucket:get_hooks(ProjectKey, RepoSlug),
   InstalledHooks = lists:map(fun(Hook) -> maps:get(key, Hook) end, Hooks),
   [H || H <- supported_hooks(), lists:member(H, InstalledHooks)].
+
+unavailable_hooks() ->
+  supported_hooks() -- available_hooks().
 
 hook_id() ->
   oneof([ <<"com.nerdwin15.stash-stash-webhook-jenkins:jenkinsPostReceiveHook">>
@@ -433,8 +436,8 @@ config_keys() ->
       , config_keys_mandatory() ++ Optional
       ).
 
-config_value('project')             -> project();
-config_value('repo')                -> repo();
+config_value('project')             -> bec_test_utils:bitbucket_project_key();
+config_value('repo')                -> bec_test_utils:bitbucket_repo_slug();
 config_value('default-branch')      -> branch_id();
 config_value('public')              -> bool();
 config_value('users')               -> ss_permission_users();
@@ -447,21 +450,3 @@ config_value('wz-workflow')         -> wz_workflow();
 config_value('wz-pr-restrictions')  -> wz_pr_restrictions();
 config_value('wz-branch-reviewers') -> wz_branch_reviewers();
 config_value('webhooks')            -> webhooks().
-
-project() ->
-  list_to_binary(os:getenv("BB_STAGING_PROJECT_KEY", "")).
-
-repo() ->
-  list_to_binary(os:getenv("BB_STAGING_REPO_SLUG", "")).
-
-team_a() ->
-  list_to_binary(os:getenv("BB_STAGING_TEAM_A", "")).
-
-team_b() ->
-  list_to_binary(os:getenv("BB_STAGING_TEAM_B", "")).
-
-user_a() ->
-  list_to_binary(os:getenv("BB_STAGING_USER_A", "")).
-
-user_b() ->
-  list_to_binary(os:getenv("BB_STAGING_USER_B", "")).
