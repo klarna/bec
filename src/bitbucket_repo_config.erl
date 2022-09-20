@@ -73,6 +73,11 @@ read_template(TemplatePath, Variables) ->
 render(String, Ctx) ->
   mustache:render(String, Ctx).
 
+%% Convert a binary to upper-case.
+-spec binary_to_upper(Bin :: binary()) -> binary().
+binary_to_upper(Bin) ->
+  list_to_binary(string:to_upper(binary_to_list(Bin))).
+
 -spec do_verify(opts(), map()) -> boolean().
 do_verify(Options, Config) ->
   Project      = maps:get(<<"project">>, Config),
@@ -90,7 +95,10 @@ do_verify(Options, Config) ->
     {_, undefined} -> {error, missing_repo};
     {_, _}         ->
       NewConfig = remove_global_config(Config),
-      do_verify(Project, Repo, NewConfig, Enforce, AbortOnError)
+      %% Project key must be upper-case, or some pluging
+      %% (e.g. Workzone) may get confused.
+      do_verify(binary_to_upper(Project), Repo, NewConfig, Enforce,
+                AbortOnError)
   end.
 
 -spec do_verify(binary(), binary(), map(), boolean(), boolean()) -> boolean().
