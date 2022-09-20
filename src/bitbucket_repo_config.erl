@@ -182,7 +182,7 @@ do_verify(ProjectKey, RepoSlug, Key, Expected) ->
 equals(<<"branch-restrictions">>, Actual, Expected) ->
   Expected == [maps:remove(id, X) || X <- Actual];
 equals(<<"access-keys">>, Actual, Expected) ->
-  Expected == [maps:remove(id, X) || X <- Actual];
+  lists:sort(Expected) == lists:sort([maps:remove(id, X) || X <- Actual]);
 equals(<<"hooks">>, Actual, Expected) ->
   F = fun(Hook) -> lists:member(Hook, Actual) end,
   lists:all(F, Expected);
