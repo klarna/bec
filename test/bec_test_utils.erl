@@ -3,6 +3,7 @@
 
 -export([ init_bitbucket/0
         , init_logging/0
+        , flush_logging/0
         , is_wz_supported/0
 
         , bitbucket_server_url/0
@@ -157,6 +158,10 @@ maybe_add_file_handler() ->
                               #{config => #{file => Filename},
                                 level => all})
   end.
+
+flush_logging() ->
+  logger_std_h:filesync(default),
+  logger_std_h:filesync(file_handler).
 
 is_wz_supported() ->
   try
