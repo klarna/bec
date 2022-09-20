@@ -80,7 +80,7 @@ do_request(Method, Url, Body) ->
   Type    = "application/json",
   Request = {Url, Headers, Type, Body},
   ok      = ?LOG_DEBUG("HTTP Request: (~p) ~p~n~p~n",
-                       [Method, Url, Headers, Body]),
+                       [Method, Url, Headers]),
   do_http_request(Method, Request).
 
 -spec do_http_request(method(), request()) ->
