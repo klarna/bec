@@ -18,16 +18,25 @@
 %% The property
 %%==============================================================================
 prop_yml() ->
-  setup(),
-  ?FORALL( Config
-         , bec_proper_gen:config()
-         , begin
-             Path = "/tmp/test.yml",
-             file:write_file(Path, bec_yml:encode(Config)),
-             bitbucket_repo_config:verify(Path, [{enforce, true}]),
-             bitbucket_repo_config:verify(Path)
-           end
-         ).
+  ?SETUP(
+     fun() ->
+         setup(),
+         fun cleanup/0
+     end,
+     ?WHENFAIL(
+        fun cleanup/0,
+        ?FORALL( Config
+               , bec_proper_gen:config()
+               , begin
+                   Path = "/tmp/test.yml",
+                   file:write_file(Path, bec_yml:encode(Config)),
+                   bitbucket_repo_config:verify(Path, [{enforce, true}]),
+                   bitbucket_repo_config:verify(Path)
+                 end
+               ))).
+
+cleanup() ->
+  bec_test_utils:flush_logging().
 
 %%==============================================================================
 %% Setup

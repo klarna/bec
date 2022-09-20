@@ -442,6 +442,7 @@ setup() ->
 %% Teardown
 %%==============================================================================
 teardown(#{started := Started}) ->
+  bec_test_utils:flush_logging(),
   [application:stop(App) || App <- Started],
   ok.
 
