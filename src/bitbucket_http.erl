@@ -174,7 +174,7 @@ default_retry_state() ->
 
 -spec should_retry(RetryState :: retry_state()) ->
         {ok, retry_state()} | {error, max_retries_exceeded}.
-should_retry(#{n := N, max_retries := Max}) when N > Max ->
+should_retry(#{n := N, max_retries := Max}) when N >= Max ->
   {error, max_retries_exceeded};
 should_retry(#{ n := N
               , base_sleep_time := BaseSleepTime
