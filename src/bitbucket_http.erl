@@ -33,7 +33,8 @@
 
 -type retry_state()   :: #{n := non_neg_integer(),
                            base_sleep_time := pos_integer(),
-                           cap_sleep_time := pos_integer()}.
+                           cap_sleep_time := pos_integer(),
+                           max_retries := pos_integer() | infinity }.
 
 %%==============================================================================
 %% DELETE
@@ -100,10 +101,15 @@ do_http_request(Method, Request, RetryState) ->
   Result      = httpc:request(Method, Request, HTTPOptions, Options),
   ok          = ?LOG_DEBUG("HTTP Result: ~p~n", [Result]),
   case handle_result(Result) of
-    {error, retry} ->
-      ?LOG_DEBUG("Request was rate-limited, retrying...", []),
-      {ok, RetryState0} = should_retry(RetryState),
-      do_http_request(Method, Request, RetryState0);
+    {error, {retry, E}} ->
+      case should_retry(RetryState) of
+        {error, max_retries_exceeded} ->
+          ?LOG_ERROR("Request was rate-limited and max retries was exceeded."),
+          {error, E};
+        {ok, RetryState0} ->
+          ?LOG_WARNING("Request was rate-limited, retrying...", []),
+          do_http_request(Method, Request, RetryState0)
+      end;
     Other ->
       Other
   end.
@@ -132,8 +138,8 @@ handle_result({ok, {{_Ver, Status, _Phrase}, _H, Body}}) when Status =:= 200;
                                                               Status =:= 202;
                                                               Status =:= 204 ->
   {ok, decode_body(Body)};
-handle_result({ok, {{_Ver, Status, _Phrase}, _H, _Body}}) when Status =:= 429 ->
-  {error, retry};
+handle_result({ok, {{_Ver, Status, _Phrase}, _H, Body}}) when Status =:= 429 ->
+  {error, {retry, decode_error(Body)}};
 handle_result({ok, {{_Version, _Status, _Phrase}, _Headers, Resp}}) ->
   {error, decode_error(Resp)};
 handle_result({error, Reason}) ->
@@ -160,18 +166,23 @@ decode_error(Body) ->
 default_retry_state() ->
   {ok, BaseSleepTime} = application:get_env(bec, base_sleep_time),
   {ok, CapSleepTime} = application:get_env(bec, cap_sleep_time),
+  {ok, MaxRetries} = application:get_env(bec, max_retries),
   #{n => 0,
     base_sleep_time => BaseSleepTime,
-    cap_sleep_time => CapSleepTime}.
+    cap_sleep_time => CapSleepTime,
+    max_retries => MaxRetries}.
 
--spec should_retry(RetryState :: retry_state()) -> {ok, retry_state()}.
+-spec should_retry(RetryState :: retry_state()) ->
+        {ok, retry_state()} | {error, max_retries_exceeded}.
+should_retry(#{n := N, max_retries := Max}) when N > Max ->
+  {error, max_retries_exceeded};
 should_retry(#{ n := N
               , base_sleep_time := BaseSleepTime
               , cap_sleep_time := CapSleepTime} = RetryState0) ->
   Sleep = calculate_sleep_time(N, BaseSleepTime, CapSleepTime),
   ?LOG_DEBUG("Sleep-time: ~w ms", [Sleep]),
   timer:sleep(Sleep),
-  {ok, RetryState0#{ n => N +1 }}.
+  {ok, RetryState0#{ n => N + 1 }}.
 
 calculate_sleep_time(N, BaseSleepTime, CapSleepTime) ->
   Temp = min(CapSleepTime, BaseSleepTime bsl N),

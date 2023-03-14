@@ -15,6 +15,7 @@
         , get_wz_branch_reviewers_with_mandatory/1
 
         , test_retry_on_rate_limiting/1
+        , test_max_retries_exceeded/1
         ]).
 
 -include_lib("common_test/include/ct.hrl").
@@ -75,14 +76,26 @@ init_per_testcase(get_wz_branch_reviewers_with_mandatory, Config) ->
   Config;
 init_per_testcase(test_retry_on_rate_limiting, Config) ->
   FunRateLimited = fun(_, _, _, _) ->
-            {ok, {{"1.1", 429, "Rate limited"}, [], ""}}
-        end,
+                       {ok, {{"1.1", 429, "Rate limited"}, [], rate_limited_body()}}
+                   end,
   FunOk = fun(_, _, _, _) ->
             {ok, {{"1.1", 200, "OK"}, [], ""}}
         end,
 
   NumRateLimits = 4,
 
+  ok = meck:expect(httpc, request, 4,
+                   meck:seq(lists:duplicate(NumRateLimits, FunRateLimited) ++ [FunOk])),
+  Config;
+init_per_testcase(test_max_retries_exceeded, Config) ->
+  FunRateLimited = fun(_, _, _, _) ->
+                       {ok, {{"1.1", 429, "Rate limited"}, [], rate_limited_body()}}
+                   end,
+  FunOk = fun(_, _, _, _) ->
+            {ok, {{"1.1", 200, "OK"}, [], ""}}
+        end,
+
+  NumRateLimits = 4,
   ok = meck:expect(httpc, request, 4,
                    meck:seq(lists:duplicate(NumRateLimits, FunRateLimited) ++ [FunOk])),
   Config.
@@ -99,6 +112,7 @@ all() ->
   , get_wz_branch_reviewers_when_none_configured
   , get_wz_branch_reviewers_with_mandatory
   , test_retry_on_rate_limiting
+  , test_max_retries_exceeded
   ].
 
 get_default_branch(_Config) ->
@@ -185,3 +199,11 @@ body(Config, TestCase) ->
 test_retry_on_rate_limiting(_Config) ->
   Result = bitbucket:set_default_branch(?PROJECT_KEY, ?REPO_SLUG, "develop"),
   ?assertEqual(ok, Result).
+
+test_max_retries_exceeded(_Config) ->
+  application:set_env(bec, max_retries, 2),
+  Result = bitbucket:set_default_branch(?PROJECT_KEY, ?REPO_SLUG, "develop"),
+  ?assertMatch({error, [<<"Rate limited">>]}, Result).
+
+rate_limited_body() ->
+  <<"{\"errors\": [{\"message\": \"Rate limited\"}]}">>.
