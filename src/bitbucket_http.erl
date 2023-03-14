@@ -31,6 +31,10 @@
 -type request()       :: {url(), [header()], string(), body()}
                        | {url(), [header()]}.
 
+-type retry_state()   :: #{n := non_neg_integer(),
+                           base_sleep_time := pos_integer(),
+                           cap_sleep_time := pos_integer()}.
+
 %%==============================================================================
 %% DELETE
 %%==============================================================================
@@ -72,7 +76,7 @@ do_request(Method, Url) ->
   Headers = headers(),
   Request = {Url, Headers},
   ok      = ?LOG_DEBUG("HTTP Request: (~p) ~p~n", [Method, Url]),
-  do_http_request(Method, Request).
+  do_http_request(Method, Request, default_retry_state()).
 
 -spec do_request(method(), url(), body()) -> {ok, map()} | {error, any()}.
 do_request(Method, Url, Body) ->
@@ -81,11 +85,11 @@ do_request(Method, Url, Body) ->
   Request = {Url, Headers, Type, Body},
   ok      = ?LOG_DEBUG("HTTP Request: (~p) ~p~n~p~n",
                        [Method, Url, Headers]),
-  do_http_request(Method, Request).
+  do_http_request(Method, Request, default_retry_state()).
 
--spec do_http_request(method(), request()) ->
+-spec do_http_request(method(), request(), retry_state()) ->
         {ok, map()} | {ok, [map()]} | {error, any()}.
-do_http_request(Method, Request) ->
+do_http_request(Method, Request, RetryState) ->
   HTTPOptions = [{autoredirect, true}],
   Options     = [],
   %% Disable pipelining to avoid the socket getting closed during long runs
@@ -95,7 +99,14 @@ do_http_request(Method, Request) ->
                                   ]),
   Result      = httpc:request(Method, Request, HTTPOptions, Options),
   ok          = ?LOG_DEBUG("HTTP Result: ~p~n", [Result]),
-  handle_result(Result).
+  case handle_result(Result) of
+    {error, retry} ->
+      ?LOG_DEBUG("Request was rate-limited, retrying...", []),
+      {ok, RetryState0} = should_retry(RetryState),
+      do_http_request(Method, Request, RetryState0);
+    Other ->
+      Other
+  end.
 
 -spec headers() -> [{string(), string()}].
 headers() ->
@@ -121,6 +132,8 @@ handle_result({ok, {{_Ver, Status, _Phrase}, _H, Body}}) when Status =:= 200;
                                                               Status =:= 202;
                                                               Status =:= 204 ->
   {ok, decode_body(Body)};
+handle_result({ok, {{_Ver, Status, _Phrase}, _H, _Body}}) when Status =:= 429 ->
+  {error, retry};
 handle_result({ok, {{_Version, _Status, _Phrase}, _Headers, Resp}}) ->
   {error, decode_error(Resp)};
 handle_result({error, Reason}) ->
@@ -142,3 +155,24 @@ decode_body(Body0) ->
 decode_error(Body) ->
   Errors = maps:get(<<"errors">>, decode_body(Body)),
   [M || #{<<"message">> := M} <- Errors].
+
+-spec default_retry_state() -> retry_state().
+default_retry_state() ->
+  {ok, BaseSleepTime} = application:get_env(bec, base_sleep_time),
+  {ok, CapSleepTime} = application:get_env(bec, cap_sleep_time),
+  #{n => 0,
+    base_sleep_time => BaseSleepTime,
+    cap_sleep_time => CapSleepTime}.
+
+-spec should_retry(RetryState :: retry_state()) -> {ok, retry_state()}.
+should_retry(#{ n := N
+              , base_sleep_time := BaseSleepTime
+              , cap_sleep_time := CapSleepTime} = RetryState0) ->
+  Sleep = calculate_sleep_time(N, BaseSleepTime, CapSleepTime),
+  ?LOG_DEBUG("Sleep-time: ~w ms", [Sleep]),
+  timer:sleep(Sleep),
+  {ok, RetryState0#{ n => N +1 }}.
+
+calculate_sleep_time(N, BaseSleepTime, CapSleepTime) ->
+  Temp = min(CapSleepTime, BaseSleepTime bsl N),
+  Temp div 2 + rand:uniform(Temp div 2).

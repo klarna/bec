@@ -15,5 +15,7 @@
   {env, [ {bitbucket_username, ""}
         , {bitbucket_password, ""}
         , {bitbucket_url, "http://localhost:8000" }
+        , {base_sleep_time, 100}
+        , {cap_sleep_time, 60000}
         ]}
 ]}.
