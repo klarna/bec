@@ -13,6 +13,9 @@
         , get_wz_branch_reviewers/1
         , get_wz_branch_reviewers_when_none_configured/1
         , get_wz_branch_reviewers_with_mandatory/1
+
+        , test_retry_on_rate_limiting/1
+        , test_max_retries_exceeded/1
         ]).
 
 -include_lib("common_test/include/ct.hrl").
@@ -22,6 +25,7 @@
 -define(REPO_SLUG  , "a_repo").
 
 init_per_suite(Config) ->
+  bec_test_utils:init_logging(),
   {ok, Started} = application:ensure_all_started(bec),
   ok = meck:new(httpc, [unlink]),
   [{started, Started}|Config].
@@ -69,6 +73,31 @@ init_per_testcase(get_wz_branch_reviewers_with_mandatory, Config) ->
             {ok, {{"1.1", 200, "OK"}, [], Body}}
         end,
   ok = meck:expect(httpc, request, Fun),
+  Config;
+init_per_testcase(test_retry_on_rate_limiting, Config) ->
+  FunRateLimited = fun(_, _, _, _) ->
+                       {ok, {{"1.1", 429, "Rate limited"}, [], rate_limited_body()}}
+                   end,
+  FunOk = fun(_, _, _, _) ->
+            {ok, {{"1.1", 200, "OK"}, [], ""}}
+        end,
+
+  NumRateLimits = 4,
+
+  ok = meck:expect(httpc, request, 4,
+                   meck:seq(lists:duplicate(NumRateLimits, FunRateLimited) ++ [FunOk])),
+  Config;
+init_per_testcase(test_max_retries_exceeded, Config) ->
+  FunRateLimited = fun(_, _, _, _) ->
+                       {ok, {{"1.1", 429, "Rate limited"}, [], rate_limited_body()}}
+                   end,
+  FunOk = fun(_, _, _, _) ->
+            {ok, {{"1.1", 200, "OK"}, [], ""}}
+        end,
+
+  NumRateLimits = 4,
+  ok = meck:expect(httpc, request, 4,
+                   meck:seq(lists:duplicate(NumRateLimits, FunRateLimited) ++ [FunOk])),
   Config.
 
 end_per_testcase(_TestCase, _Config) ->
@@ -82,6 +111,8 @@ all() ->
   , get_wz_branch_reviewers
   , get_wz_branch_reviewers_when_none_configured
   , get_wz_branch_reviewers_with_mandatory
+  , test_retry_on_rate_limiting
+  , test_max_retries_exceeded
   ].
 
 get_default_branch(_Config) ->
@@ -164,3 +195,15 @@ get_wz_branch_reviewers_with_mandatory(_Config) ->
 body(Config, TestCase) ->
   DataDir = ?config(data_dir, Config),
   file:read_file(filename:join([DataDir, atom_to_list(TestCase) ++ ".json"])).
+
+test_retry_on_rate_limiting(_Config) ->
+  Result = bitbucket:set_default_branch(?PROJECT_KEY, ?REPO_SLUG, "develop"),
+  ?assertEqual(ok, Result).
+
+test_max_retries_exceeded(_Config) ->
+  application:set_env(bec, max_retries, 2),
+  Result = bitbucket:set_default_branch(?PROJECT_KEY, ?REPO_SLUG, "develop"),
+  ?assertMatch({error, [<<"Rate limited">>]}, Result).
+
+rate_limited_body() ->
+  <<"{\"errors\": [{\"message\": \"Rate limited\"}]}">>.
