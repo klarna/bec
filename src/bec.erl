@@ -1,6 +1,8 @@
 -module(bec).
 
--export([ main/1 ]).
+-export([ main/1
+        , ssl_logger_filter/2
+        ]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -91,6 +93,12 @@ usage(Specs) ->
 
 -spec set_logging(Verbosity :: verbose_levels()) -> ok.
 set_logging(Verbosity) ->
+    logger:add_primary_filter(
+      no_progress, {fun logger_filters:progress/2, stop}),
+
+    logger:add_primary_filter(
+      no_ssl, {fun bec:ssl_logger_filter/2, stop}),
+
     ok = logger:update_primary_config(#{level => Verbosity}).
 
 -spec verbosity_level(I :: non_neg_integer()) -> verbose_levels().
@@ -102,3 +110,15 @@ verbosity_level(2) ->
     info;
 verbosity_level(I) when is_integer(I), I > 2 ->
     debug.
+
+ssl_logger_filter(#{meta := #{report_cb := ReportCb}} = Event, Action) ->
+  case {Action, erlang:fun_info(ReportCb, module)} of
+    {stop, {module, ssl_logger}} ->
+      stop;
+    {log, {module, ssl_logger}} ->
+      Event;
+    _ ->
+      ignore
+  end;
+ssl_logger_filter(_, _) ->
+  ignore.
