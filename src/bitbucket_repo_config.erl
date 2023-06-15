@@ -180,9 +180,10 @@ do_verify(ProjectKey, RepoSlug, Key, Expected) ->
     false ->
       %% Not showing details here since they may contain secrets.
       %% They were debug-logged above.
-      ok = ?LOG_ERROR("[~s/~s] Actual does not match Expected"
-                      " (increase verbosity to see details)~n"
-                     , [ProjectKey, RepoSlug]),
+      ok = ?LOG_ERROR(
+              "[~s/~s] Actual does not match Expected. "
+              "Increase verbosity to see details (note: may contain secrets)",
+              [ProjectKey, RepoSlug]),
       false
   end.
 
@@ -262,8 +263,17 @@ do_enforce(ProjectKey, RepoSlug, Key, Expected) ->
   ok = ?LOG_INFO("[~s/~s] Enforcing ~p ~n", [ProjectKey, RepoSlug, Key]),
   Set = setter(Key),
   Adapted = adapt(Key, Expected),
-  ok = ?LOG_INFO("[~s/~s] Setting value to ~p ~n",
-                 [ProjectKey, RepoSlug, Adapted]),
+
+  %% `Adapted' may contain secrets, e.g. the password field in the
+  %% http request post receive hook, so only log that at debug level.
+  ok = ?LOG_INFO(
+          "[~s/~s] Setting value. "
+          "Increase verbosity to see details (note: may contain secrets)",
+          [ProjectKey, RepoSlug]),
+
+  ok = ?LOG_DEBUG("[~s/~s] Setting value to ~p ~n",
+                  [ProjectKey, RepoSlug, Adapted]),
+
   ok = Set(ProjectKey, RepoSlug, Adapted).
 
 -spec remove_global_config(map()) -> map().
