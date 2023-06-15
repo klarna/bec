@@ -80,7 +80,8 @@ specs() ->
     , { keep,        $k, "keep",        {boolean, false}
       , "Keep going after the first error (always true when enforce == true)"}
     , { verbosity,   $v, "verbosity",   {integer, 1}
-      , "Verbosity Level"}
+      , "Verbosity Level. Important: the 'debug' level (-vvv) or higher may "
+        "leak sensitive information in settings."}
     ].
 
 usage() ->
