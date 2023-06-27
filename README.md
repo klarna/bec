@@ -88,6 +88,12 @@ Set BitBucket url and credentials in `bitbucket.config`:
 {bitbucket_token, "someToken"}.
 ```
 
+Values can also be provided using environment variables, for example
+
+```
+{bitbucket_password, {env, "BITBUCKET_PASSWORD"}}.
+```
+
 Please follow [this](https://confluence.atlassian.com/bitbucketserver072/personal-access-tokens-1005335924.html#Personalaccesstokens-Generatingpersonalaccesstokens) guide if you want to generate the token to authenticate.
 
 ## Sample Repo Configuration
