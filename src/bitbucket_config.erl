@@ -9,9 +9,22 @@ load(Path) ->
     case file:consult(Path) of
         {ok, Config} ->
             ?LOG_INFO("Reading config file ~p.~n", [Path]),
-            [ok = application:set_env(bec, K, V) || {K, V} <- Config],
-            ok;
+            set_vars(Config);
         {error, Reason} ->
             %% Error will be printed higher up in the call chain
             {error, Reason}
+    end.
+
+
+set_vars([]) ->
+    ok;
+set_vars([{K, V}|Rest]) when is_list(V) ->
+    application:set_env(bec, K, V),
+    set_vars(Rest);
+set_vars([{K, {env, EnvVar}}|Rest]) ->
+    case os:getenv(EnvVar) of
+        false ->
+            {error, {missing_env_var, EnvVar}};
+        V ->
+            set_vars([{K, V}|Rest])
     end.
