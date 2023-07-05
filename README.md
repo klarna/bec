@@ -107,8 +107,8 @@ It is a common need to apply very similar configuration to multiple
 repositories. Repo configuration templates are supported for this use
 case.
 
-A repo configuration file is similar to a repo configuration, but has
-a `.ymlt` extension, and will be rendered as a
+A repo configuration template file is similar to a repo configuration,
+but has a `.ymlt` extension, and will be rendered as a
 [Mustache](https://mustache.github.io/) template. The parameters for
 the template are defined in a `.ymlv` file (as Yaml).
 
@@ -173,6 +173,33 @@ repo:
   - best_cat_pics
 ```
 
+### Handling secrets
+
+Repo configurations may contain secrets, like authentication tokens
+for web hooks. It is possible to inject the secrets at runtime from
+OS environment variables by using the `!env` YAML tag:
+
+```
+- auth_token: !env TOKEN
+```
+
+This tag will fetch the value of the `TOKEN` OS environment variable.
+
+In case a field is not entirely a secret, but contains a secret, repo
+configuration templates can be used:
+
+```
+# example.ymlt
+- auth_token: !env TOKEN
+```
+
+```
+# example.ymlv
+hooks:
+  - key: de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook
+    settings:
+      url: https://jenkins.hipster.company.io/buildByToken/build?job=fancyci&token={{ auth_token }}
+```
 
 ## Known Limitations
 

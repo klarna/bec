@@ -42,6 +42,7 @@ do_main(Options) ->
     Verbosity = proplists:get_value(verbosity, Options),
     set_logging(verbosity_level(Verbosity)),
     application:ensure_all_started(bec),
+    yamerl_app:set_param(node_mods, [bec_node_env_variable]),
     case bitbucket_config:load(Config) of
         ok ->
             RepoConfig = proplists:get_value(repo_config, Options),

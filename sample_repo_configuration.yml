@@ -144,7 +144,7 @@ webhooks:
     active: true
     url: https://my_endpoint
     configuration:
-      secret: my_secret
+      secret: !env MY_SECRET
     events:
       - pr:modified
       - repo:refs_changed
@@ -152,6 +152,6 @@ webhooks:
     active: true
     url: http://my_other_endpoint
     configuration:
-      secret: my_other_secret
+      secret: !env MY_OTHER_SECRET
     events:
       - pr:modified
