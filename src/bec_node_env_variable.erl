@@ -17,7 +17,8 @@
 
 tags() -> [?TAG, "!env"].
 
-construct_token(#yamerl_constr{detailed_constr = Detailed},
+construct_token(#yamerl_constr{detailed_constr = Detailed,
+                               ext_options = Options},
                undefined,
                #yamerl_scalar{text = Text} = Token) ->
   case os:getenv(Text) of
@@ -28,11 +29,11 @@ construct_token(#yamerl_constr{detailed_constr = Detailed},
       Node = #yamerl_str{ module = ?MODULE
                         , tag = ?TAG
                         , pres = Pres
-                        , text = Value
+                        , text = encode_text(Value, Options)
                         },
       {finished, Node};
     Value ->
-      {finished, Value}
+      {finished, encode_text(Value, Options)}
   end;
 construct_token(_, _, Token) ->
   parsing_error(Token, "Invalid OS environment variable").
@@ -49,3 +50,10 @@ parsing_error(Token, Text) ->
     column = ?TOKEN_COLUMN(Token)
   },
   throw(Error).
+
+encode_text(Text, Options) ->
+  case proplists:get_value(str_node_as_binary, Options, false) of
+    false    -> Text;
+    true     -> unicode:characters_to_binary(Text);
+    Encoding -> unicode:characters_to_binary(Text, unicode, Encoding)
+  end.

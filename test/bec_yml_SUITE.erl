@@ -14,6 +14,8 @@
 %% Testcases
 -export([ environment_variable_substitution/1
         , missing_environment_variable/1
+        , environment_variable_as_string/1
+        , environment_variable_as_binary/1
         ]).
 
 %%==============================================================================
@@ -65,9 +67,9 @@ environment_variable_substitution(_Config) ->
   Yml = <<"myval: !env TEST_VAL\n">>,
   try
     os:putenv("TEST_VAL", "abc"),
-    ?assertEqual([#{<<"myval">> => "abc"}], bec_yml:decode(Yml)),
+    ?assertEqual([#{<<"myval">> => <<"abc">>}], bec_yml:decode(Yml)),
     os:putenv("TEST_VAL", "xyz"),
-    ?assertEqual([#{<<"myval">> => "xyz"}], bec_yml:decode(Yml))
+    ?assertEqual([#{<<"myval">> => <<"xyz">>}], bec_yml:decode(Yml))
   after
     os:unsetenv("TEST_VAL")
   end.
@@ -77,3 +79,25 @@ missing_environment_variable(_Config) ->
   Yml = <<"myval: !env TEST_VAL\n">>,
   os:unsetenv("TEST_VAL"),
   ?assertThrow({yamerl_exception, _}, bec_yml:decode(Yml)).
+
+-spec environment_variable_as_string(config()) -> ok.
+environment_variable_as_string(_Config) ->
+  Yml = <<"myval: !env TEST_VAL\n">>,
+  Opts = [{map_node_format, map}],
+  try
+    os:putenv("TEST_VAL", "abc"),
+    ?assertEqual([#{"myval" => "abc"}], yamerl:decode(Yml, Opts))
+  after
+    os:unsetenv("TEST_VAL")
+  end.
+
+-spec environment_variable_as_binary(config()) -> ok.
+environment_variable_as_binary(_Config) ->
+  Yml = <<"myval: !env TEST_VAL\n">>,
+  Opts = [str_node_as_binary, {map_node_format, map}],
+  try
+    os:putenv("TEST_VAL", "abc"),
+    ?assertEqual([#{<<"myval">> => <<"abc">>}], yamerl:decode(Yml, Opts))
+  after
+    os:unsetenv("TEST_VAL")
+  end.
