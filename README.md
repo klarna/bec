@@ -189,12 +189,12 @@ In case a field is not entirely a secret, but contains a secret, repo
 configuration templates can be used:
 
 ```
-# example.ymlt
+# example.ymlv
 - auth_token: !env TOKEN
 ```
 
 ```
-# example.ymlv
+# example.ymlt
 hooks:
   - key: de.aeffle.stash.plugin.stash-http-get-post-receive-hook:http-get-post-receive-hook
     settings:
