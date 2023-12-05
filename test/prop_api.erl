@@ -396,7 +396,7 @@ get_webhooks_pre(S) ->
 get_webhooks_post(S, _Args, {ok, WebHooks0}) ->
   Generated = [id, createdDate, updatedDate],
   Webhooks = [lists:foldl(fun maps:remove/2, WH, Generated)|| WH <- WebHooks0],
-  ?assertEqual(lists:sort(Webhooks), lists:sort(maps:get(webhooks, S))),
+  ?assertEqual(lists:sort(maps:get(webhooks, S)), lists:sort(Webhooks)),
   true.
 
 %%------------------------------------------------------------------------------
