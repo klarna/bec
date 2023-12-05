@@ -38,9 +38,11 @@
 from_map(#{ <<"configuration">> := Config
           , <<"events">>        := Events
           } = Map) ->
-  keys_to_atoms(Map#{ <<"configuration">> => keys_to_atoms(Config)
-                    , <<"events">>        => lists:sort(Events)
-                    }).
+  Map0 = maps:remove(<<"sslVerificationRequired">>, Map),
+  Map1 = maps:remove(<<"scopeType">>, Map0),
+  keys_to_atoms(Map1#{ <<"configuration">> => keys_to_atoms(Config)
+                     , <<"events">>        => lists:sort(Events)
+                     }).
 
 -spec to_map(webhook()) -> map().
 to_map(#{ configuration := Config
