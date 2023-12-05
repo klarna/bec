@@ -22,7 +22,7 @@ services:
       test: ['CMD', 'bash', '-c', 'curl -s http://localhost:7990/status | grep RUNNING']
       interval: 5s
       start_period: 10s
-      retries: 10
+      retries: 20
     mem_limit: 4G
 
 networks:
