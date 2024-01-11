@@ -113,7 +113,7 @@ to_wz_branch_reviewers_adds_default_mandatory_in_path(_Config) ->
     ExpectedResult =
       [ #{ 'branch-id'        => <<"master">>
          , 'groups'           => [ <<"group.a">>, <<"group.b">> ]
-         , 'paths'            => [#{ 'file-path-pattern' => [ <<"path.a">>, <<"path.b">> ]
+         , 'paths'            => [#{ 'file-path-pattern' => [ <<"path.b">>, <<"path.a">> ]
                                    , 'users' => [ <<"user.c">>, <<"user.d">> ]
                                    , 'groups' => [ <<"group.c">>, <<"group.d">> ]
                                    , 'mandatory-users' => [ <<"user.e">>, <<"user.f">> ]
