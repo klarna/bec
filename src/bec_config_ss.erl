@@ -177,7 +177,7 @@ to_wz_branch_reviewer(#{<<"paths">> := Paths} = R0) ->
   AtomifyMap = [atomify_keys(add_default_mandatory(P)) || P <- Paths],
   R = R0#{<<"paths">> => lists:sort(AtomifyMap)},
   Merged = add_default_mandatory(R),
-  atomify_keys(Merged).
+  sort_users_and_groups(atomify_keys(Merged)).
 
 -spec atomify_keys(map()) -> map().
 atomify_keys(Map) ->
@@ -191,3 +191,38 @@ add_default_mandatory(WZMap) ->
   Mandatory = #{ <<"mandatory-users">> => []
                 , <<"mandatory-groups">> => []},
   maps:merge(Mandatory,WZMap).
+
+-spec sort_users_and_groups(map()) -> map().
+sort_users_and_groups(Map) when is_map(Map) ->
+  maps:fold(fun(Key, Value, Acc) ->
+    case Key of
+      users ->
+        case is_list(Value) of
+            true -> maps:put(Key, lists:sort(Value), Acc);
+            false -> error({badarg, {Key, Value}})
+        end;
+      groups ->
+        case is_list(Value) of
+            true -> maps:put(Key, lists:sort(Value), Acc);
+            false -> error({badarg, {Key, Value}})
+        end;
+      'mandatory-users' ->
+        case is_list(Value) of
+            true -> maps:put(Key, lists:sort(Value), Acc);
+            false -> error({badarg, {Key, Value}})
+        end;
+      'mandatory-groups' ->
+        case is_list(Value) of
+            true -> maps:put(Key, lists:sort(Value), Acc);
+            false -> error({badarg, {Key, Value}})
+        end;
+      paths ->
+        case is_list(Value) of
+            true ->
+              maps:put(Key, lists:map(fun sort_users_and_groups/1, Value), Acc);
+            false -> error({badarg, {Key, Value}})
+        end;
+      _ ->
+        maps:put(Key, Value, Acc)
+    end
+  end, #{}, Map).
