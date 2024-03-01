@@ -310,10 +310,19 @@ webhook_active() ->
 webhook_secret() ->
   non_empty(string_b()).
 
+webhook_username() ->
+  non_empty(string_b()).
+
+webhook_password() ->
+  non_empty(string_b()).
+
 webhook_config() ->
-  ?LET( Secret
-      , webhook_secret()
-      , #{ secret => Secret }).
+  ?LET({Secret, Username, Password}
+      , {webhook_secret(), webhook_username(), webhook_password()}
+      , #{ secret => Secret
+        , username => Username
+        , password => Password
+        }).
 
 webhook_event() ->
   oneof([<<"pr:modified">>, <<"repo:refs_changed">>]).

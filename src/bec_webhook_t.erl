@@ -18,7 +18,10 @@
                     , createdDate   => pos_integer()
                     , updatedDate   => pos_integer()
                     , active        := boolean()
-                    , configuration := #{ secret := binary() }
+                    , configuration := #{ secret := binary()
+                                        , username := binary()
+                                        , password := binary()
+                                        }
                     , events        := [binary()]
                     , name          := binary()
                     , url           := binary()

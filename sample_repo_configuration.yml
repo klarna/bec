@@ -152,6 +152,7 @@ webhooks:
     active: true
     url: http://my_other_endpoint
     configuration:
-      secret: !env MY_OTHER_SECRET
+      username: my_username
+      password: !env WEBHOOK_PASSWORD
     events:
       - pr:modified
