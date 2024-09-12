@@ -442,10 +442,8 @@ config_value('default-branch')      -> branch_id();
 config_value('public')              ->
   case os:getenv("BEC_SKIP_PUBLIC") of
     Value when is_list(Value) ->
-      io:format(standard_error, "Skipping PUBLIC", []),
       [];
     false ->
-      io:format(standard_error, "Not skipping PUBLIC", []),
       bool()
   end;
 config_value('users')               -> ss_permission_users();
