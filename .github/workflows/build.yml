@@ -70,9 +70,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: rebar3 cover
     - name: Produce Documentation
+      if: matrix.otp-version == '25'
       run: rebar3 edoc
     - name: Publish Documentation
-      uses: actions/upload-artifact@v1
+      if: matrix.otp-version == '25'
+      uses: actions/upload-artifact@v4
       with:
         name: edoc
-        path: doc
+        path: "doc"
