@@ -439,7 +439,15 @@ config_keys() ->
 config_value('project')             -> bec_test_utils:bitbucket_project_key();
 config_value('repo')                -> bec_test_utils:bitbucket_repo_slug();
 config_value('default-branch')      -> branch_id();
-config_value('public')              -> bool();
+config_value('public')              ->
+  case os:getenv("BEC_SKIP_PUBLIC") of
+    Value when is_list(Value) ->
+      io:format(standard_error, "Skipping PUBLIC", []),
+      [];
+    false ->
+      io:format(standard_error, "Not skipping PUBLIC", []),
+      bool()
+  end;
 config_value('users')               -> ss_permission_users();
 config_value('groups')              -> ss_permission_groups();
 config_value('branch-restrictions') -> ss_branch_restrictions();
