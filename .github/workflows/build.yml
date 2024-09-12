@@ -75,4 +75,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: edoc
-        path: doc
+        path: "doc-${{ matrix.otp-version }}"
