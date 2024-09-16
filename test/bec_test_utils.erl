@@ -5,7 +5,7 @@
         , init_logging/0
         , flush_logging/0
         , is_wz_supported/0
-
+        , is_public_repo_supported/0
         , bitbucket_server_url/0
         , bitbucket_project_key/0
         , bitbucket_repo_slug/0
@@ -170,6 +170,14 @@ is_wz_supported() ->
   catch _:_ ->
       ?LOG_ERROR("Workzone plugin is not supported. Corresponding tests will not be run."),
       false
+  end.
+
+%% Set BEC_SKIP_PUBLIC environment variable to a non-empty value to
+%% disable testing of the "public" attribute for repos.
+is_public_repo_supported() ->
+  case os:getenv("BEC_SKIP_PUBLIC") of
+    [_|_] -> false;
+    _ -> true
   end.
 
 -spec bitbucket_server_url() -> binary().

@@ -74,7 +74,10 @@ set_default_branch_post(_S, _Args, ok) ->
 %% get_public/2
 %%------------------------------------------------------------------------------
 get_public(Key, Slug) ->
-  bitbucket:get_public(Key, Slug).
+  case bec_test_utils:is_public_repo_supported() of
+    true -> bitbucket:get_public(Key, Slug);
+    false -> {ok, true}
+  end.
 
 get_public_args(S) ->
   [maps:get(project_key, S), maps:get(repo_slug, S)].
@@ -86,14 +89,22 @@ get_public_pre(S) ->
   maps:is_key(public, S).
 
 get_public_post(S, _Args, {ok, Public}) ->
-  ?assertEqual(Public, maps:get(public, S)),
-  true.
+  case bec_test_utils:is_public_repo_supported() of
+    true ->
+      ?assertEqual(Public, maps:get(public, S)),
+      true;
+    false ->
+      true
+  end.
 
 %%------------------------------------------------------------------------------
 %% set_public/3
 %%------------------------------------------------------------------------------
 set_public(Key, Slug, Public) ->
-  bitbucket:set_public(Key, Slug, Public).
+  case bec_test_utils:is_public_repo_supported() of
+    true -> bitbucket:set_public(Key, Slug, Public);
+    false -> ok
+  end.
 
 set_public_args(S) ->
   [maps:get(project_key, S), maps:get(repo_slug, S), bool()].
@@ -101,8 +112,14 @@ set_public_args(S) ->
 set_public_next(S, _R, [_Key, _Slug, Branch]) ->
   maps:put(public, Branch, S).
 
-set_public_post(_S, _Args, ok) ->
-  true.
+set_public_post(_S, _Args, Result) ->
+  case bec_test_utils:is_public_repo_supported() of
+    true ->
+      ?assertEqual(Result, ok),
+      true;
+    _ ->
+      true
+  end.
 
 %%------------------------------------------------------------------------------
 %% get_users/2

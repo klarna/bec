@@ -415,6 +415,8 @@ is_config_key_supported('wz-pr-restrictions', Features) ->
   maps:get(wz, Features, false);
 is_config_key_supported('wz-branch-reviewers', Features) ->
   maps:get(wz, Features, false);
+is_config_key_supported('public', _Features) ->
+  bec_test_utils:is_public_repo_supported();
 is_config_key_supported(_, _) ->
   true.
 
@@ -448,13 +450,7 @@ config_keys() ->
 config_value('project')             -> bec_test_utils:bitbucket_project_key();
 config_value('repo')                -> bec_test_utils:bitbucket_repo_slug();
 config_value('default-branch')      -> branch_id();
-config_value('public')              ->
-  case os:getenv("BEC_SKIP_PUBLIC") of
-    Value when is_list(Value) ->
-      [];
-    false ->
-      bool()
-  end;
+config_value('public')              -> bool();
 config_value('users')               -> ss_permission_users();
 config_value('groups')              -> ss_permission_groups();
 config_value('branch-restrictions') -> ss_branch_restrictions();
